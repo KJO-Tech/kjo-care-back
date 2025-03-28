@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: msvc-getaway
+  config:
+    import: optional:configserver:http://localhost:8888
