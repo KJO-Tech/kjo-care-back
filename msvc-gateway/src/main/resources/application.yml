@@ -30,7 +30,7 @@ management:
     health:
       show-details: always
     prometheus:
-      enabled: true
+      access: unrestricted
   prometheus:
     metrics:
       export:
