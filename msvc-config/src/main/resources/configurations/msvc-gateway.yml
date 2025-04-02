@@ -1,10 +1,11 @@
 eureka:
   instance:
-    hostname: eureka-server
+    hostname: gateway
   client:
-    register-with-eureka: false
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
-      defaultZone: http://${eureka.instance.hostname}:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
 
 
 server:
@@ -14,9 +15,8 @@ spring:
   application:
     name: msvc-gateway
   cloud:
-    config:
-      discovery:
-        enabled: true
     gateway:
-      mvc:
-        routes:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true

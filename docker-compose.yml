@@ -9,6 +9,11 @@ services:
     container_name: config-server
     ports:
       - "8888:8888"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - spring-cloud-network
 
@@ -16,14 +21,23 @@ services:
     build:
       context: ./msvc-eureka
     container_name: eureka-server
+    hostname: eureka-server
     ports:
       - "8761:8761"
     depends_on:
-      - config-server
+      config-server:
+        condition: service_healthy
     environment:
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
-      - EUREKA_INSTANCE_HOSTNAME=eureka-server
-
+    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    - EUREKA_INSTANCE_HOSTNAME=eureka-server
+    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+    - EUREKA_CLIENT_FETCH_REGISTRY=false
+    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - spring-cloud-network
 
@@ -31,15 +45,22 @@ services:
     build:
       context: ./msvc-gateway
     container_name: gateway
+    hostname: gateway
     ports:
       - "8080:8080"
     depends_on:
-      - config-server
-      - eureka-server
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     environment:
-      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
-      - EUREKA_INSTANCE_HOSTNAME=eureka-server
-      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+    - EUREKA_INSTANCE_HOSTNAME=gateway
+    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+    - EUREKA_CLIENT_FETCH_REGISTRY=true
+    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
       - spring-cloud-network
 

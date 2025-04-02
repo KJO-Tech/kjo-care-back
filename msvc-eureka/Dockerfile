@@ -5,5 +5,6 @@ RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jre-alpine
 VOLUME /tmp
+RUN apk add --no-cache curl
 COPY --from=build /workspace/target/*.jar app.jar
 ENTRYPOINT ["java","-jar","/app.jar"]

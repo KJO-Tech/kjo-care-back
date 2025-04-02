@@ -1,8 +1,27 @@
+server:
+  port: 8761
+
 spring:
   application:
     name: msvc-eureka
   config:
     import: optional:configserver:http://config-server:8888
+
+eureka:
+  instance:
+    hostname: eureka-server
+    prefer-ip-address: false
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    #auto-preservación
+    enable-self-preservation: true
+    response-cache-update-interval-ms: 1000
+    response-cache-auto-expiration-in-seconds: 10
+
 management:
   endpoints:
     web:
