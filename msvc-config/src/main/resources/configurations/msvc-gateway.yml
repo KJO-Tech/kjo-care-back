@@ -1,13 +1,18 @@
 eureka:
+  instance:
+    hostname: eureka-server
   client:
     register-with-eureka: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:8761/eureka/
+
 
 server:
   port: 8080
 
 spring:
   application:
-    name: msvc-getaway
+    name: msvc-gateway
   cloud:
     config:
       discovery:

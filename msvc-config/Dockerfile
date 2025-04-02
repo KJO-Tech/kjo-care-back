@@ -1,10 +1,7 @@
-FROM eclipse-temurin:17-jdk-alpine as build
+FROM maven:3.8.6-eclipse-temurin-17 AS build
 WORKDIR /workspace
-COPY mvnw .
-COPY .mvn .mvn
-COPY pom.xml .
-COPY src src
-RUN ./mvnw package -DskipTests
+COPY . .
+RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jre-alpine
 VOLUME /tmp

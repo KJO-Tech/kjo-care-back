@@ -1,10 +1,10 @@
 volumes:
   grafana-data:
-  prometheus-data:    
+  prometheus-data:
 
 services:
   config-server:
-    build: 
+    build:
       context: ./msvc-config
     container_name: config-server
     ports:
@@ -22,6 +22,8 @@ services:
       - config-server
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server
+
     networks:
       - spring-cloud-network
 
@@ -36,6 +38,8 @@ services:
       - eureka-server
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
       - spring-cloud-network
 
@@ -78,14 +82,14 @@ services:
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
-    command: 
-      - '--path.procfs=/host/proc' 
+    command:
+      - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
       - --collector.filesystem.ignored-mount-points
       - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
     networks:
       - spring-cloud-network
-        
+
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
