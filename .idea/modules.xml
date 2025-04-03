@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/kjo-care-back.iml" filepath="$PROJECT_DIR$/.idea/kjo-care-back.iml" />
+      <module fileurl="file://$PROJECT_DIR$/msvc-users/msvc-users.iml" filepath="$PROJECT_DIR$/msvc-users/msvc-users.iml" />
     </modules>
   </component>
 </project>

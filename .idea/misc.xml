@@ -11,6 +11,12 @@
         <option value="$PROJECT_DIR$/msvc-eureka/pom.xml" />
         <option value="$PROJECT_DIR$/msvc-gateway/pom.xml" />
         <option value="$PROJECT_DIR$/msvc-users/pom.xml" />
+        <option value="$PROJECT_DIR$/msvc-emergency/pom.xml" />
+        <option value="$PROJECT_DIR$/msvc-blog/pom.xml" />
+        <option value="$PROJECT_DIR$/msvc-moodTracking/pom.xml" />
+        <option value="$PROJECT_DIR$/msvc-user/pom.xml" />
+        <option value="$PROJECT_DIR$/msvc-mood-tracking/pom.xml" />
+        <option value="$PROJECT_DIR$/msvc-auth/pom.xml" />
       </list>
     </option>
   </component>

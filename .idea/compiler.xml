@@ -11,6 +11,19 @@
         <module name="msvc-gateway" />
         <module name="msvc-eureka" />
       </profile>
+      <profile name="Annotation profile for msvc-auth" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
+        </processorPath>
+        <module name="msvc-emergency" />
+        <module name="msvc-mood-tracking" />
+        <module name="msvc-auth" />
+        <module name="msvc-blog" />
+        <module name="msvc-user" />
+      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="msvc-configserver" target="17" />
@@ -20,11 +33,16 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="msvc-auth" options="-parameters" />
+      <module name="msvc-blog" options="-parameters" />
       <module name="msvc-config" options="-parameters" />
       <module name="msvc-configserver" options="-parameters" />
+      <module name="msvc-emergency" options="-parameters" />
       <module name="msvc-eureka" options="-parameters" />
       <module name="msvc-gateway" options="-parameters" />
       <module name="msvc-getaway" options="-parameters" />
+      <module name="msvc-mood-tracking" options="-parameters" />
+      <module name="msvc-user" options="-parameters" />
       <module name="msvc-users" options="-parameters" />
     </option>
   </component>

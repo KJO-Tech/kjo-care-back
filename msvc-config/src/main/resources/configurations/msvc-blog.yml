@@ -1,9 +1,12 @@
 spring:
   application:
-    name: msvc-users
+    name: msvc-blog
   security:
-    basic:
-      enabled: false
+    user:
+      name: admin
+      password: admin
+    autoconfigure:
+      exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -22,7 +25,7 @@ spring:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 
 server:
-  port: 9001
+  port: 9004
 eureka:
   instance:
     hostname: localhost
