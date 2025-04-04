@@ -15,27 +15,33 @@ spring:
         locator:
           enabled: true
       routes:
+        - id: msvc-auth
+          uri: lb://msvc-auth
+          predicates:
+            - Path=/api/mind/auth/**
+          filters:
+            - StripPrefix=2
         - id: msvc-users
           uri: lb://msvc-users
           predicates:
-            - Path=/api/users/**
+            - Path=/api/mind/users/**
           filters:
             - StripPrefix=2
         - id: msvc-mood-tracking
           uri: lb://msvc-mood-tracking
           predicates:
-            - Path=/api/mood-tracking/**
+            - Path=/api/mind/mood-tracking/**
           filters:
             - StripPrefix=2
         - id: msvc-emergency
           uri: lb://msvc-emergency
           predicates:
-            - Path=/api/emergency/**
+            - Path=/api/mind/emergency/**
           filters:
             - StripPrefix=2
         - id: msvc-blog
           uri: lb://msvc-blog
           predicates:
-            - Path=/api/blog/**
+            - Path=/api/mind/blog/**
           filters:
             - StripPrefix=2

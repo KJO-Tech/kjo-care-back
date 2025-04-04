@@ -1,0 +1,30 @@
+server:
+  port: 9091
+
+spring:
+  application:
+    name: msvc-auth
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9090/realms/kjo-care-realm-dev
+          jwk-set-uri: http://localhost:9090/realms/kjo-care-realm-dev/protocol/openid-connect/certs
+
+jwt:
+  auth:
+    converter:
+      principal-attribute: preferred_username
+      resource-id: client-kjo-care
+
+login:
+  level:
+    org:
+      keycloak: DEBUG
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
