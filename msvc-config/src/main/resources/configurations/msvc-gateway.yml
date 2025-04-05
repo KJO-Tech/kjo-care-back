@@ -26,28 +26,28 @@ spring:
           predicates:
             - Path=/api/mind/auth/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=3
         - id: msvc-users
           uri: lb://msvc-users
           predicates:
             - Path=/api/mind/users/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=3
         - id: msvc-mood-tracking
           uri: lb://msvc-mood-tracking
           predicates:
             - Path=/api/mind/mood-tracking/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=3
         - id: msvc-emergency
           uri: lb://msvc-emergency
           predicates:
             - Path=/api/mind/emergency/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=3
         - id: msvc-blog
           uri: lb://msvc-blog
           predicates:
             - Path=/api/mind/blog/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=3

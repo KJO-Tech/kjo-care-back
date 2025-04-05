@@ -2,4 +2,13 @@ spring:
   application:
     name: msvc-blog
   config:
-    import: optional:configserver:http://localhost:8888
+    import: optional:configserver:http://config-server:8888
+  cloud:
+    config:
+      enabled: true
+      fail-fast: true
+      retry:
+        initial-interval: 1500
+        max-interval: 10000
+        max-attempts: 6
+      uri: http://config-server:8888

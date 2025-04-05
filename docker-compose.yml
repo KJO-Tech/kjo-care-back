@@ -42,6 +42,121 @@ services:
     networks:
       - spring-cloud-network
 
+  msvc-auth:
+    build:
+      context: ./msvc-auth
+    container_name: msvc-auth
+    hostname: msvc-auth
+    ports:
+      - "9091:9091"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+    - EUREKA_INSTANCE_HOSTNAME=msvc-auth
+    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+    - EUREKA_CLIENT_FETCH_REGISTRY=true
+    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - spring-cloud-network
+
+  msvc-users:
+    build:
+      context: ./msvc-user
+    container_name: msvc-users
+    hostname: msvc-users
+    ports:
+      - "9001:9001"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+    - EUREKA_INSTANCE_HOSTNAME=msvc-users
+    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+    - EUREKA_CLIENT_FETCH_REGISTRY=true
+    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - spring-cloud-network
+
+  msvc-mood-tracking:
+    build:
+      context: ./msvc-mood-tracking
+    container_name: msvc-mood-tracking
+    hostname: msvc-mood-tracking
+    ports:
+      - "9002:9002"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+    - EUREKA_INSTANCE_HOSTNAME=msvc-mood-tracking
+    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+    - EUREKA_CLIENT_FETCH_REGISTRY=true
+    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - spring-cloud-network
+
+  msvc-emergency:
+    build:
+      context: ./msvc-emergency
+    container_name: msvc-emergency
+    hostname: msvc-emergency
+    ports:
+      - "9003:9003"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+    - EUREKA_INSTANCE_HOSTNAME=msvc-emergency
+    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+    - EUREKA_CLIENT_FETCH_REGISTRY=true
+    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - spring-cloud-network
+
+  msvc-blog:
+    build:
+      context: ./msvc-blog
+    container_name: msvc-blog
+    hostname: msvc-blog
+    ports:
+      - "9004:9004"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+    - EUREKA_INSTANCE_HOSTNAME=msvc-blog
+    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+    - EUREKA_CLIENT_FETCH_REGISTRY=true
+    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - spring-cloud-network
+
   gateway:
     build:
       context: ./msvc-gateway
@@ -54,14 +169,39 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
+      msvc-auth:
+        condition: service_started
+      msvc-users:
+        condition: service_started
+      msvc-mood-tracking:
+        condition: service_started
+      msvc-emergency:
+        condition: service_started
+      msvc-blog:
+        condition: service_started
     environment:
-    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
-    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
-    - EUREKA_INSTANCE_HOSTNAME=gateway
-    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
-    - EUREKA_CLIENT_FETCH_REGISTRY=true
-    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=gateway
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CLOUD_GATEWAY_ROUTES[0]_ID=msvc-auth
+      - SPRING_CLOUD_GATEWAY_ROUTES[0]_URI=lb://msvc-auth
+      - SPRING_CLOUD_GATEWAY_ROUTES[0]_PREDICATES[0]=Path=/api/mind/auth/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[1]_ID=msvc-users
+      - SPRING_CLOUD_GATEWAY_ROUTES[1]_URI=lb://msvc-users
+      - SPRING_CLOUD_GATEWAY_ROUTES[1]_PREDICATES[0]=Path=/api/mind/users/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[2]_ID=msvc-mood-tracking
+      - SPRING_CLOUD_GATEWAY_ROUTES[2]_URI=lb://msvc-mood-tracking
+      - SPRING_CLOUD_GATEWAY_ROUTES[2]_PREDICATES[0]=Path=/api/mind/mood-tracking/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[3]_ID=msvc-emergency
+      - SPRING_CLOUD_GATEWAY_ROUTES[3]_URI=lb://msvc-emergency
+      - SPRING_CLOUD_GATEWAY_ROUTES[3]_PREDICATES[0]=Path=/api/mind/emergency/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[4]_ID=msvc-blog
+      - SPRING_CLOUD_GATEWAY_ROUTES[4]_URI=lb://msvc-blog
+      - SPRING_CLOUD_GATEWAY_ROUTES[4]_PREDICATES[0]=Path=/api/mind/blog/**
     networks:
       - spring-cloud-network
 
