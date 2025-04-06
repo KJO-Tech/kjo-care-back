@@ -1,6 +1,8 @@
 volumes:
   grafana-data:
   prometheus-data:
+  keycloak_data:
+  postgres-data:
 
 services:
   config-server:
@@ -10,7 +12,7 @@ services:
     ports:
       - "8888:8888"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,13 +31,13 @@ services:
       config-server:
         condition: service_healthy
     environment:
-    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
-    - EUREKA_INSTANCE_HOSTNAME=eureka-server
-    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
-    - EUREKA_CLIENT_FETCH_REGISTRY=false
-    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -54,14 +56,24 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
+      keycloak:
+        condition: service_started
     environment:
-    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
-    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
-    - EUREKA_INSTANCE_HOSTNAME=msvc-auth
-    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
-    - EUREKA_CLIENT_FETCH_REGISTRY=true
-    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-auth
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      # Variables para Keycloak que serán leídas desde el archivo .env
+      - KEYCLOAK_SERVER_URL=${KEYCLOAK_SERVER_URL:-http://keycloak:9090}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-kjo-care-realm-dev}
+      - KEYCLOAK_MASTER_REALM=${KEYCLOAK_MASTER_REALM:-master}
+      - KEYCLOAK_ADMIN_CLIENT=${KEYCLOAK_ADMIN_CLIENT:-admin-cli}
+      - KEYCLOAK_USER=${KEYCLOAK_ADMIN:-admin}
+      - KEYCLOAK_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
     networks:
       - spring-cloud-network
 
@@ -78,13 +90,13 @@ services:
       eureka-server:
         condition: service_healthy
     environment:
-    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
-    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
-    - EUREKA_INSTANCE_HOSTNAME=msvc-users
-    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
-    - EUREKA_CLIENT_FETCH_REGISTRY=true
-    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-users
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
       - spring-cloud-network
 
@@ -101,13 +113,13 @@ services:
       eureka-server:
         condition: service_healthy
     environment:
-    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
-    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
-    - EUREKA_INSTANCE_HOSTNAME=msvc-mood-tracking
-    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
-    - EUREKA_CLIENT_FETCH_REGISTRY=true
-    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-mood-tracking
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
       - spring-cloud-network
 
@@ -124,13 +136,13 @@ services:
       eureka-server:
         condition: service_healthy
     environment:
-    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
-    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
-    - EUREKA_INSTANCE_HOSTNAME=msvc-emergency
-    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
-    - EUREKA_CLIENT_FETCH_REGISTRY=true
-    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-emergency
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
       - spring-cloud-network
 
@@ -147,13 +159,13 @@ services:
       eureka-server:
         condition: service_healthy
     environment:
-    - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
-    - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-    - SPRING_CLOUD_CONFIG_FAIL_FAST=true
-    - EUREKA_INSTANCE_HOSTNAME=msvc-blog
-    - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
-    - EUREKA_CLIENT_FETCH_REGISTRY=true
-    - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-blog
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
       - spring-cloud-network
 
@@ -205,6 +217,58 @@ services:
     networks:
       - spring-cloud-network
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.2
+    container_name: keycloak
+    hostname: keycloak
+    command:
+      - start-dev
+      - --health-enabled=true
+    ports:
+      - "9090:9090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-keycloak}
+      - KC_DB_USERNAME=${POSTGRES_USER:-postgres}
+      - KC_DB_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      - KC_HOSTNAME_STRICT=false
+      - KC_HTTP_ENABLED=true
+      - KC_HTTP_PORT=9090
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_METRICS_ENABLED=true
+      - KC_HEALTH_ENABLED=true
+    networks:
+      - spring-cloud-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9090/health/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    networks:
+      - spring-cloud-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d  # Directorio para scripts SQL
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-keycloak}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_HOST_AUTH_METHOD=trust  # Añade esta línea para desarrollo
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -226,7 +290,7 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
     ports:
-      - 9090:9090
+      - 9089:9089
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'

@@ -5,34 +5,49 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public class KeycloakProvider {
-    private static final String SERVER_URL = "http://localhost:9090";
-    private static final String REALM_NAME = "kjo-care-realm-dev";
-    private static final String REALM_MASTER = "master";
-    private static final String ADMIN_CLI = "admin-cli";
-    private static final String USER_CONSOLE = "admin";
-    private static final String PASSWORD_CONSOLE = "admin";
-    private static final String CLIENT_SECRET = "uWGEyPszdOgKXIupa5wXvslNFDw6F0o6";
+    @Value("${keycloak.server-url}")
+    private String serverUrl;
 
-    public static RealmResource getRealmResource() {
+    @Value("${keycloak.realm}")
+    private String realm;
+
+    @Value("${keycloak.master-realm}")
+    private String masterRealm;
+
+    @Value("${keycloak.admin-client}")
+    private String adminClient;
+
+    @Value("${keycloak.user}")
+    private String user;
+
+    @Value("${keycloak.password}")
+    private String password;
+
+    @Value("${keycloak.client-secret}")
+    private String clientSecret;
+
+    public RealmResource getRealmResource() {
 
         Keycloak keycloak = KeycloakBuilder.builder()
-                .serverUrl(SERVER_URL)
-                .realm(REALM_MASTER)
-                .clientId(ADMIN_CLI)
-                .username(USER_CONSOLE)
-                .password(PASSWORD_CONSOLE)
-                .clientSecret(CLIENT_SECRET)
+                .serverUrl(serverUrl)
+                .realm(masterRealm)
+                .clientId(adminClient)
+                .username(user)
+                .password(password)
+                .clientSecret(clientSecret)
                 .resteasyClient(new ResteasyClientBuilderImpl()
-                        .connectionPoolSize(10).
-                        build())
+                        .connectionPoolSize(10)
+                        .build())
                 .build();
-
-        return keycloak.realm(REALM_NAME);
+        return keycloak.realm(realm);
     }
 
-    public static UsersResource getUserResource() {
+    public UsersResource getUserResource() {
         RealmResource realmResource = getRealmResource();
         return realmResource.users();
     }

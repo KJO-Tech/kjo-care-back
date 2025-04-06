@@ -1,3 +1,28 @@
-.idea/
 .vscode/
+
+# Environment variables
+.env
+*.env
+.env.*
+
+# Logs
+logs
+*.log
+
+# IntelliJ IDEA
+.idea/
 /.idea/
+*.iml
+*.iws
+*.ipr
+
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+
+# Docker volumes
+*_data/
