@@ -4,7 +4,7 @@ spring:
   config:
     import: optional:configserver:http://config-server:8888
   datasource:
-    url: jdbc:postgresql://postgres:5432/mood_tracking
+    url: jdbc:postgresql://localhost:5432/mood_tracking
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver

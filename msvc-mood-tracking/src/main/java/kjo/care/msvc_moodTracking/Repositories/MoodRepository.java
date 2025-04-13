@@ -1,7 +1,9 @@
 package kjo.care.msvc_moodTracking.Repositories;
 
-import kjo.care.msvc_moodTracking.Entities.Mood;
+import kjo.care.msvc_moodTracking.Entities.MoodEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface MoodRepository extends JpaRepository<Mood, Long> {
+@Repository
+public interface MoodRepository extends JpaRepository<MoodEntity, Long> {
 }

@@ -16,8 +16,10 @@ public class MoodUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "user_id")
+    private Long userId;
     private LocalDateTime recordedDate;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "moodId")
-    private Mood mood;
+    @JoinColumn(name = "mood_id")
+    private MoodEntity mood;
 }

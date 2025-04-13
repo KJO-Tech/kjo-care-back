@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "mood")
-public class Mood {
+public class MoodEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,8 +29,9 @@ public class Mood {
     private String image;
     @Column(name = "color")
     private String color;
-
-    @OneToMany(mappedBy = "mood",cascade = CascadeType.ALL,orphanRemoval = true)
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+    @OneToMany(mappedBy = "mood", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<MoodUser> moodUsers = new ArrayList<>();
 }

@@ -132,4 +132,14 @@ public class GlobalExceptionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
+    @ExceptionHandler(MoodEntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMoodEntityNodFoundException(MoodEntityNotFoundException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                "MOOD_ERROR",
+                "Ha ocurrido un error con el MOOD_TRACKING",
+                Collections.singletonList(ex.getMessage())
+        );
+        log.warn("Mood not found:{}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
 }
