@@ -3,3 +3,23 @@ spring:
     name: msvc-mood-tracking
   config:
     import: optional:configserver:http://config-server:8888
+  datasource:
+    url: jdbc:postgresql://postgres:5432/mood_tracking
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+server:
+  port: 9002
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /
+    enabled: true
