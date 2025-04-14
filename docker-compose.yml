@@ -73,6 +73,8 @@ services:
       - KEYCLOAK_ADMIN_CLIENT=${KEYCLOAK_ADMIN_CLIENT:-admin-cli}
       - KEYCLOAK_USER=${KEYCLOAK_ADMIN:-admin}
       - KEYCLOAK_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      - KEYCLOAK_HOSTNAME=${KEYCLOAK_HOSTNAME:-localhost}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-kjo-care-client}
       - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
     networks:
       - spring-cloud-network
@@ -224,6 +226,7 @@ services:
     command:
       - start-dev
       - --health-enabled=true
+      - --import-realm
     ports:
       - "9090:9090"
     depends_on:
@@ -242,6 +245,7 @@ services:
       - KC_HOSTNAME_STRICT_HTTPS=false
       - KC_METRICS_ENABLED=true
       - KC_HEALTH_ENABLED=true
+      - KC_HOSTNAME=${KEYCLOAK_HOSTNAME:-localhost}
     networks:
       - spring-cloud-network
     healthcheck:
@@ -249,6 +253,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./keycloak-config.json:/opt/keycloak/data/import/keycloak-config.json
 
   postgres:
     image: postgres:15
@@ -258,6 +265,8 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres-init:/docker-entrypoint-initdb.d  # Directorio para scripts SQL
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-keycloak}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
