@@ -161,6 +161,7 @@ services:
       eureka-server:
         condition: service_healthy
     environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/blogs
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - SPRING_CLOUD_CONFIG_FAIL_FAST=true
@@ -168,6 +169,11 @@ services:
       - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
       - EUREKA_CLIENT_FETCH_REGISTRY=true
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - KEYCLOAK_SERVER_URL=${KEYCLOAK_SERVER_URL:-http://keycloak:9090}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-kjo-care-realm-dev}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-kjo-care-client}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - KEYCLOAK_HOSTNAME=${KEYCLOAK_HOSTNAME:-localhost}
     networks:
       - spring-cloud-network
 
@@ -271,6 +277,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-keycloak}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_MULTIPLE_DATABASES=blogs
       - POSTGRES_HOST_AUTH_METHOD=trust  # Añade esta línea para desarrollo
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]

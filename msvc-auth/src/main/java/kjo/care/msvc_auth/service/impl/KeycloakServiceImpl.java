@@ -3,6 +3,7 @@ package kjo.care.msvc_auth.service.impl;
 
 import jakarta.ws.rs.core.Response;
 import kjo.care.msvc_auth.dto.UserDTO;
+import kjo.care.msvc_auth.dto.UserInfoDto;
 import kjo.care.msvc_auth.service.IKeycloakService;
 import kjo.care.msvc_auth.util.KeycloakProvider;
 import lombok.NonNull;
@@ -39,6 +40,18 @@ public class KeycloakServiceImpl implements IKeycloakService {
         return keycloakProvider.getRealmResource()
                 .users()
                 .searchByUsername(username, true);
+    }
+
+    @Override
+    public UserInfoDto findUserById(String userId) {
+        UserResource userResource = keycloakProvider.getRealmResource()
+                .users()
+                .get(userId);
+
+        return UserInfoDto.builder()
+                .id(userResource.toRepresentation().getId())
+                .username(userResource.toRepresentation().getUsername())
+                .build();
     }
 
     @Override
