@@ -51,6 +51,8 @@ public class KeycloakServiceImpl implements IKeycloakService {
         return UserInfoDto.builder()
                 .id(userResource.toRepresentation().getId())
                 .username(userResource.toRepresentation().getUsername())
+                .firstName(userResource.toRepresentation().getFirstName())
+                .lastName(userResource.toRepresentation().getLastName())
                 .build();
     }
 
