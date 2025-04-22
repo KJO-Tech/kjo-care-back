@@ -8,7 +8,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_SERVER_URL:http://localhost:9090}/realms/${KEYCLOAK_REALM:kjo-care-realm-dev}
+          issuer-uri: http://${KEYCLOAK_HOSTNAME:localhost}:9090/realms/${KEYCLOAK_REALM:kjo-care-realm-dev}
           jwk-set-uri: ${KEYCLOAK_SERVER_URL:http://localhost:9090}/realms/${KEYCLOAK_REALM:kjo-care-realm-dev}/protocol/openid-connect/certs
 
 keycloak:
@@ -24,7 +24,7 @@ jwt:
   auth:
     converter:
       principal-attribute: preferred_username
-      resource-id: client-kjo-care
+      resource-id: ${KEYCLOAK_CLIENT_ID:kjo-care-client}
 
 login:
   level:

@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 @RestController
+@RequestMapping("/users")
 public class AuthController {
 
     @Autowired
@@ -27,6 +28,11 @@ public class AuthController {
     @PreAuthorize("hasRole('admin_client_role')")
     public ResponseEntity<?> findAllUserByUsername(@PathVariable String username){
         return ResponseEntity.ok(keycloakService.findAllUserByUsername(username));
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> findUserById(@PathVariable String userId){
+        return ResponseEntity.ok(keycloakService.findUserById(userId));
     }
 
     @PostMapping("/register")
