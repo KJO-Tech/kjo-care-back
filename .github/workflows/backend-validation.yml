@@ -1,79 +1,113 @@
-name: Backend Validation
+name: Spring Microservices CI
 
 on:
   push:
-    branches: [main, dev]
+    branches: ['**']
   pull_request:
-    branches: [main, dev]
+    branches: ['**']
 
 jobs:
-  validate-backend:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      # Paso 1: Checkout del código
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Paso 2: Configurar Docker
-      - name: Set up Docker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker.io
-          sudo systemctl start docker
-          sudo chmod 666 /var/run/docker.sock
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      # Paso 3: Cargar variables de entorno desde secrets
-      - name: Load environment variables
+      - name: Create .env file with repository secrets
         run: |
-          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> $GITHUB_ENV
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_SERVER_URL=${{ secrets.KEYCLOAK_SERVER_URL }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_REALM=${{ secrets.KEYCLOAK_REALM }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_MASTER_REALM=${{ secrets.KEYCLOAK_MASTER_REALM }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_ADMIN_CLIENT=${{ secrets.KEYCLOAK_ADMIN_CLIENT }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_HOSTNAME=${{ secrets.KEYCLOAK_HOSTNAME }}" >> $GITHUB_ENV
-          echo "KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }}" >> $GITHUB_ENV
+          cat > .env << EOL
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }}
+          KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+          KEYCLOAK_SERVER_URL=${{ secrets.KEYCLOAK_SERVER_URL }}
+          KEYCLOAK_REALM=${{ secrets.KEYCLOAK_REALM }}
+          KEYCLOAK_MASTER_REALM=${{ secrets.KEYCLOAK_MASTER_REALM }}
+          KEYCLOAK_ADMIN_CLIENT=${{ secrets.KEYCLOAK_ADMIN_CLIENT }}
+          KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+          KEYCLOAK_HOSTNAME=${{ secrets.KEYCLOAK_HOSTNAME }}
+          KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }}
+          EOL
 
-      # Paso 4: Construir y levantar los servicios
-      - name: Build and start services
+      - name: Start services with Docker Compose
+        run: docker-compose up -d
+
+      - name: Wait for services to be healthy
         run: |
-          docker-compose up -d --build
+          # Dar tiempo a los servicios para iniciar
+          echo "Esperando 60 segundos para que los servicios inicien..."
+          sleep 60
+          
+          # Verificar estado de los servicios
+          echo "Verificando estado de los servicios..."
+          docker ps
+          
+          # Verificar cada servicio individualmente
+          services=("config-server" "eureka-server" "msvc-auth" "msvc-users" "msvc-mood-tracking" "msvc-emergency" "msvc-blog" "gateway" "keycloak" "postgres")
+          
+          for service in "${services[@]}"; do
+            echo "Verificando servicio: $service"
+            if ! docker ps | grep -q "$service"; then
+              echo "Error: El servicio $service no está ejecutándose"
+              docker logs $service
+              exit 1
+            fi
+          done
+          
+          # Verificar servicios que tienen healthcheck
+          health_services=("config-server" "eureka-server" "keycloak" "postgres")
+          
+          for service in "${health_services[@]}"; do
+            health_status=$(docker inspect --format='{{.State.Health.Status}}' $service 2>/dev/null)
+            echo "$service health status: $health_status"
+          
+            if [ "$health_status" != "healthy" ]; then
+              echo "Error: El servicio $service no está saludable"
+              docker logs $service
+              exit 1
+            fi
+          done
 
-      # Paso 5: Validar la salud de los servicios
-      - name: Validate service health
+      - name: Test Eureka Server
         run: |
-          # Función para validar la salud de un servicio
-          validate_health() {
-            local service_name=$1
-            local health_url=$2
-            local retries=10
-            local delay=10
-
-            for i in $(seq 1 $retries); do
-              status=$(curl -s -o /dev/null -w "%{http_code}" $health_url)
-              if [ "$status" -eq 200 ]; then
-                echo "$service_name is healthy"
-                return 0
-              fi
-              echo "Waiting for $service_name to become healthy... ($i/$retries)"
-              sleep $delay
-            done
-            echo "$service_name failed to become healthy"
+          # Verificar que Eureka esté funcionando
+          EUREKA_URL="http://localhost:8761/actuator/health"
+          RESPONSE=$(curl -s $EUREKA_URL)
+          echo "Eureka health response: $RESPONSE"
+          
+          if ! echo "$RESPONSE" | grep -q "UP"; then
+            echo "Error: Eureka no está respondiendo correctamente"
+            docker logs eureka-server
             exit 1
-          }
+          fi
 
-          # Validar cada servicio
-          validate_health "config-server" "http://localhost:8888/actuator/health"
-          validate_health "eureka-server" "http://localhost:8761/actuator/health"
-          validate_health "keycloak" "http://localhost:9090/health/ready"
-          validate_health "postgres" "$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5432)"
-
-      # Paso 6: Detener los servicios
-      - name: Stop services
+      - name: Test Gateway Routes
         run: |
-          docker-compose down
+          # Verificar que el gateway esté enrutando correctamente
+          BASE_URL="http://localhost:8080/api/mind"
+          
+          services=("auth" "users" "mood-tracking" "emergency" "blog")
+          
+          for service in "${services[@]}"; do
+            echo "Verificando ruta del gateway a $service"
+            URL="$BASE_URL/$service/actuator/health"
+            STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+          
+            # Aceptar cualquier código 2xx, 3xx o 4xx (podría ser 401 si necesita autenticación)
+            if [ "$STATUS_CODE" -ge 200 ] && [ "$STATUS_CODE" -lt 500 ]; then
+              echo "Gateway route to $service is working (status code: $STATUS_CODE)"
+            else
+              echo "Gateway route to $service failed with status code: $STATUS_CODE"
+              docker logs gateway
+              exit 1
+            fi
+          done
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose down -v
