@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: msvc-blog
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://${KEYCLOAK_HOSTNAME:localhost}:9090/realms/${KEYCLOAK_REALM:kjo-care-realm-dev}
+          jwk-set-uri: ${KEYCLOAK_SERVER_URL:http://localhost:9090}/realms/${KEYCLOAK_REALM:kjo-care-realm-dev}/protocol/openid-connect/certs
+          audience: ${KEYCLOAK_CLIENT_ID:kjo-care-client}
+
+
+server:
+  port: 9004
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  auth:
+    converter:
+      principal-attribute: preferred_username
+      resource-id: ${KEYCLOAK_CLIENT_ID:kjo-care-client}

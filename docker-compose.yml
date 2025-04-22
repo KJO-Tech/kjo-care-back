@@ -1,0 +1,351 @@
+volumes:
+  grafana-data:
+  prometheus-data:
+  keycloak_data:
+  postgres-data:
+
+services:
+  config-server:
+    build:
+      context: ./msvc-config
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spring-cloud-network
+    restart: unless-stopped
+
+  eureka-server:
+    build:
+      context: ./msvc-eureka
+    container_name: eureka-server
+    hostname: eureka-server
+    ports:
+      - "8761:8761"
+    depends_on:
+      config-server:
+        condition: service_healthy
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - spring-cloud-network
+
+  msvc-auth:
+    build:
+      context: ./msvc-auth
+    container_name: msvc-auth
+    hostname: msvc-auth
+    ports:
+      - "9091:9091"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-auth
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      # Variables para Keycloak que serán leídas desde el archivo .env
+      - KEYCLOAK_SERVER_URL=${KEYCLOAK_SERVER_URL:-http://keycloak:9090}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-kjo-care-realm-dev}
+      - KEYCLOAK_MASTER_REALM=${KEYCLOAK_MASTER_REALM:-master}
+      - KEYCLOAK_ADMIN_CLIENT=${KEYCLOAK_ADMIN_CLIENT:-admin-cli}
+      - KEYCLOAK_USER=${KEYCLOAK_ADMIN:-admin}
+      - KEYCLOAK_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      - KEYCLOAK_HOSTNAME=${KEYCLOAK_HOSTNAME:-localhost}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-kjo-care-client}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+    networks:
+      - spring-cloud-network
+
+  msvc-users:
+    build:
+      context: ./msvc-user
+    container_name: msvc-users
+    hostname: msvc-users
+    ports:
+      - "9001:9001"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-users
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - spring-cloud-network
+
+  msvc-mood-tracking:
+    build:
+      context: ./msvc-mood-tracking
+    container_name: msvc-mood-tracking
+    hostname: msvc-mood-tracking
+    ports:
+      - "9002:9002"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-mood-tracking
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - spring-cloud-network
+
+  msvc-emergency:
+    build:
+      context: ./msvc-emergency
+    container_name: msvc-emergency
+    hostname: msvc-emergency
+    ports:
+      - "9003:9003"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-emergency
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - spring-cloud-network
+
+  msvc-blog:
+    build:
+      context: ./msvc-blog
+    container_name: msvc-blog
+    hostname: msvc-blog
+    ports:
+      - "9004:9004"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/blogs
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-blog
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - KEYCLOAK_SERVER_URL=${KEYCLOAK_SERVER_URL:-http://keycloak:9090}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-kjo-care-realm-dev}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-kjo-care-client}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - KEYCLOAK_HOSTNAME=${KEYCLOAK_HOSTNAME:-localhost}
+    networks:
+      - spring-cloud-network
+
+  gateway:
+    build:
+      context: ./msvc-gateway
+    container_name: gateway
+    hostname: gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      msvc-auth:
+        condition: service_started
+      msvc-users:
+        condition: service_started
+      msvc-mood-tracking:
+        condition: service_started
+      msvc-emergency:
+        condition: service_started
+      msvc-blog:
+        condition: service_started
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=gateway
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CLOUD_GATEWAY_ROUTES[0]_ID=msvc-auth
+      - SPRING_CLOUD_GATEWAY_ROUTES[0]_URI=lb://msvc-auth
+      - SPRING_CLOUD_GATEWAY_ROUTES[0]_PREDICATES[0]=Path=/api/mind/auth/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[1]_ID=msvc-users
+      - SPRING_CLOUD_GATEWAY_ROUTES[1]_URI=lb://msvc-users
+      - SPRING_CLOUD_GATEWAY_ROUTES[1]_PREDICATES[0]=Path=/api/mind/users/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[2]_ID=msvc-mood-tracking
+      - SPRING_CLOUD_GATEWAY_ROUTES[2]_URI=lb://msvc-mood-tracking
+      - SPRING_CLOUD_GATEWAY_ROUTES[2]_PREDICATES[0]=Path=/api/mind/mood-tracking/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[3]_ID=msvc-emergency
+      - SPRING_CLOUD_GATEWAY_ROUTES[3]_URI=lb://msvc-emergency
+      - SPRING_CLOUD_GATEWAY_ROUTES[3]_PREDICATES[0]=Path=/api/mind/emergency/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[4]_ID=msvc-blog
+      - SPRING_CLOUD_GATEWAY_ROUTES[4]_URI=lb://msvc-blog
+      - SPRING_CLOUD_GATEWAY_ROUTES[4]_PREDICATES[0]=Path=/api/mind/blog/**
+    networks:
+      - spring-cloud-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.2
+    container_name: keycloak
+    hostname: keycloak
+    command:
+      - start-dev
+      - --health-enabled=true
+      - --import-realm
+    ports:
+      - "9090:9090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB:-keycloak}
+      - KC_DB_USERNAME=${POSTGRES_USER:-postgres}
+      - KC_DB_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      - KC_HOSTNAME_STRICT=false
+      - KC_HTTP_ENABLED=true
+      - KC_HTTP_PORT=9090
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_METRICS_ENABLED=true
+      - KC_HEALTH_ENABLED=true
+      - KC_HOSTNAME=${KEYCLOAK_HOSTNAME:-localhost}
+    networks:
+      - spring-cloud-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9090/health/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./keycloak-config.json:/opt/keycloak/data/import/keycloak-config.json
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    networks:
+      - spring-cloud-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d  # Directorio para scripts SQL
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-keycloak}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_MULTIPLE_DATABASES=blogs
+      - POSTGRES_HOST_AUTH_METHOD=trust  # Añade esta línea para desarrollo
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - 3000:3000
+    networks:
+      - spring-cloud-network
+    depends_on:
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - 9089:9089
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=1y'
+      - '--web.enable-lifecycle'
+    networks:
+      - spring-cloud-network
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    restart: unless-stopped
+    ports:
+      - 9100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    networks:
+      - spring-cloud-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    expose:
+      - 8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - spring-cloud-network
+
+networks:
+  spring-cloud-network:
+    driver: bridge
