@@ -310,13 +310,6 @@ jobs:
           docker network ls > logs/docker-networks.txt
           docker volume ls > logs/docker-volumes.txt
 
-      - name: Upload logs as artifact
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: service-logs
-          path: logs/
-
       - name: Cleanup
         if: always()
         run: docker compose down -v
