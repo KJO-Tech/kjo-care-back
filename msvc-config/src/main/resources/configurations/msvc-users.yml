@@ -1,26 +1,31 @@
-eureka:
-  instance:
-    hostname: localhost
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-
-server:
-  port: 8090
-
 spring:
   application:
     name: msvc-users
+  security:
+    basic:
+      enabled: false
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/user_service
-    username: postgres
-    password: postgressql
-  jpa:
-    hibernate:
-      ddl-auto: update
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    url: "" # Deja esto vacío para que no intente conectarse
+    username: ""
+    password: ""
+    initialization-mode: never
+  sql:
+    init:
+      mode: never
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 
-application:
-  config:
+server:
+  port: 9001
+eureka:
+  instance:
+    hostname: eureka-server
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
