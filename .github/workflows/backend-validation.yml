@@ -35,7 +35,7 @@ jobs:
           EOL
 
       - name: Start services with Docker Compose
-        run: docker-compose up -d
+        run: docker compose up -d
 
       - name: Wait for services to be healthy
         run: |
@@ -110,4 +110,4 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v
