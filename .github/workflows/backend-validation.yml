@@ -2,11 +2,9 @@ name: Backend Validation
 
 on:
   push:
-    branches:
-      - all # Ejecutar en todas las ramas
+    branches: [main, dev]
   pull_request:
-    branches:
-      - all # Ejecutar en todas las PR
+    branches: [main, dev]
 
 jobs:
   validate-backend:
