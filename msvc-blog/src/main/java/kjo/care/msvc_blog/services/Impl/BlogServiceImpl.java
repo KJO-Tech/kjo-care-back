@@ -7,11 +7,13 @@ import kjo.care.msvc_blog.dto.BlogResponseDto;
 import kjo.care.msvc_blog.dto.UserInfoDto;
 import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Category;
+import kjo.care.msvc_blog.enums.BlogState;
 import kjo.care.msvc_blog.exceptions.EntityNotFoundException;
 import kjo.care.msvc_blog.mappers.BlogMapper;
 import kjo.care.msvc_blog.repositories.BlogRepository;
 import kjo.care.msvc_blog.repositories.CategoryRepository;
 import kjo.care.msvc_blog.services.BlogService;
+import kjo.care.msvc_blog.services.IUploadImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.cache.annotation.Cacheable;
@@ -36,11 +38,17 @@ public class BlogServiceImpl implements BlogService {
     private final CategoryRepository categoryRepository;
     private final BlogMapper blogMapper;
     private final UserClient userClient;
+    private final IUploadImageService uploadService;
 
     @Override
     @Transactional(readOnly = true)
     public List<BlogResponseDto> findAllBlogs() {
         return blogRepository.findAll().stream().map(blogMapper::entityToDto).toList();
+    }
+
+    @Override
+    public List<BlogResponseDto> findAllBlogsPublished() {
+        return blogRepository.findAll().stream().filter(blog -> blog.getState().equals(BlogState.PUBLICADO)).map(blogMapper::entityToDto).toList();
     }
 
     @Override
@@ -60,6 +68,8 @@ public class BlogServiceImpl implements BlogService {
                 .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
 
         Blog blog = blogMapper.dtoToEntity(dto);
+        saveImageOrVideo(dto, blog);
+        blog.setState(BlogState.PUBLICADO);
         blog.setCategory(category);
         blog.setUserId(userId);
         blogRepository.save(blog);
@@ -82,6 +92,8 @@ public class BlogServiceImpl implements BlogService {
 
         blogMapper.updateEntityFromDto(dto, blog);
         blog.setCategory(category);
+        deleteImageOrVideo(blog);
+        saveImageOrVideo(dto, blog);
         blogRepository.save(blog);
         return blogMapper.entityToDto(blog);
     }
@@ -94,12 +106,14 @@ public class BlogServiceImpl implements BlogService {
         if (!isAdmin && !blog.getUserId().equals(authenticatedUserId)) {
             throw new AccessDeniedException("Acción no permitida");
         }
-        blogRepository.delete(blog);
+
+        blog.setState(BlogState.ELIMINADO);
+        blogRepository.save(blog);
     }
 
     private Blog findExistBlog(Long id) {
         return blogRepository.findById(id).orElseThrow(() -> {
-            return new EntityNotFoundException("Category con id :" + id + " no encontrado");
+            return new EntityNotFoundException("Blog con id :" + id + " no encontrado");
         });
     }
 
@@ -117,4 +131,37 @@ public class BlogServiceImpl implements BlogService {
         }
         return false;
     }
+
+    private void saveImageOrVideo(BlogRequestDto dto, Blog blog) {
+        if (dto.getImage() != null && !dto.getImage().isEmpty()) {
+            String imageUrl = uploadService.uploadFile(
+                    dto.getImage(),
+                    "blog/images",
+                    "auto"
+            );
+            blog.setImage(imageUrl);
+        }
+        if (dto.getVideo() != null && !dto.getVideo().isEmpty()) {
+            String videoUrl = uploadService.uploadFile(
+                    dto.getVideo(),
+                    "blog/videos",
+                    "video"
+            );
+            blog.setVideo(videoUrl);
+        }
+    }
+
+    private void deleteImageOrVideo(Blog blog) {
+        try {
+            if (blog.getImage() != null && blog.getImage().startsWith("http")) {
+                uploadService.DeleteImage(blog.getImage(), "image");
+            }
+            if (blog.getVideo() != null && blog.getVideo().startsWith("http")) {
+                uploadService.DeleteImage(blog.getVideo(), "video");
+            }
+        } catch (Exception e) {
+            log.error("Error al eliminar imagen/video: {}", e.getMessage());
+        }
+    }
+
 }

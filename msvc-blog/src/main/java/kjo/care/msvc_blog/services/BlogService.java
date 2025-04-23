@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface BlogService {
     List<BlogResponseDto> findAllBlogs();
+    List<BlogResponseDto> findAllBlogsPublished();
     BlogResponseDto findBlogById(Long id);
     BlogResponseDto saveBlog(BlogRequestDto dto, String userId);
     BlogResponseDto updateBlog (Long id , BlogRequestDto dto, String authenticatedUserId);

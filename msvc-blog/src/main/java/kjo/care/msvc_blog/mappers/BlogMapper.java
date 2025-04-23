@@ -42,12 +42,12 @@ public class BlogMapper {
             mapper.skip(Blog::setPublishedDate);
             mapper.skip(Blog::setModifiedDate);
             mapper.skip(Blog::setCategory);
+            mapper.skip(Blog::setState);
         });
 
     }
 
     public BlogResponseDto entityToDto(Blog entity) {
-
         UserInfoDto author = userClient.findUserById(entity.getUserId());
         BlogResponseDto dto = modelMapper.map(entity, BlogResponseDto.class);
         dto.setAuthor(author);
@@ -56,11 +56,17 @@ public class BlogMapper {
     }
 
     public Blog dtoToEntity(BlogRequestDto dto) {
-        return modelMapper.map(dto, Blog.class);
+        Blog blog = modelMapper.map(dto, Blog.class);
+        return blog;
     }
 
     public void updateEntityFromDto(BlogRequestDto dto, Blog entity) {
         modelMapper.getConfiguration().setSkipNullEnabled(true);
+        modelMapper.typeMap(BlogRequestDto.class, Blog.class)
+                .addMappings(mapper -> {
+                    mapper.skip(Blog::setImage);
+                    mapper.skip(Blog::setVideo);
+                });
         modelMapper.map(dto, entity);
         entity.setModifiedDate(LocalDate.now());
     }

@@ -19,7 +19,6 @@ public class FeignConfig {
             if (authentication != null) {
                 String token = authentication.getToken().getTokenValue();
                 requestTemplate.header("Authorization", "Bearer " + token);
-                System.out.println("Token enviado: " + token);
             } else {
                 System.out.println("No hay autenticación en el contexto");
             }

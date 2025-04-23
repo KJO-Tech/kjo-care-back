@@ -1,6 +1,7 @@
 package kjo.care.msvc_blog.entities;
 
 import jakarta.persistence.*;
+import kjo.care.msvc_blog.enums.BlogState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,6 +39,10 @@ public class Blog {
 
     @Column(name = "image", nullable = true)
     private String image;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state")
+    private BlogState state;
 
     @Column(name = "publishedDate")
     private LocalDate publishedDate = LocalDate.now();
