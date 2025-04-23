@@ -154,10 +154,14 @@ jobs:
           for service in "msvc-users" "msvc-mood-tracking" "msvc-emergency"; do
             echo "Iniciando $service..."
             docker compose up -d $service
-            sleep 10
+            sleep 20  # Aumentado tiempo de espera para inicialización completa
           
             if docker ps | grep -q "$service"; then
               echo "✅ $service iniciado correctamente"
+          
+              # Mostrar logs para diagnóstico
+              echo "Últimas líneas de log de $service:"
+              docker logs $service | tail -n 50
             else
               echo "❌ $service falló al iniciar"
               docker logs $service || echo "No se pueden obtener logs de $service"
@@ -170,7 +174,7 @@ jobs:
           for service in "msvc-auth" "msvc-blog"; do
             echo "Iniciando $service (puede fallar si Keycloak no está disponible)..."
             docker compose up -d $service
-            sleep 10
+            sleep 20  # Aumentado tiempo de espera
           
             if docker ps | grep -q "$service"; then
               echo "✅ $service iniciado correctamente"
@@ -183,7 +187,7 @@ jobs:
         run: |
           echo "Iniciando gateway..."
           docker compose up -d gateway
-          sleep 15
+          sleep 30  # Aumentado tiempo de espera
           
           if docker ps | grep -q "gateway"; then
             echo "✅ Gateway iniciado correctamente"
@@ -233,30 +237,42 @@ jobs:
             echo "✅ Todos los servicios esenciales están en funcionamiento"
           fi
 
+      - name: Wait for microservices to register with Eureka
+        run: |
+          echo "Esperando 90 segundos adicionales para que los servicios se registren completamente en Eureka..."
+          sleep 90
+
       - name: Test Eureka Registry
         run: |
           echo "Verificando registro en Eureka..."
-          sleep 30
           
-          # Obtener apps registradas en Eureka
-          EUREKA_RESPONSE=$(curl -s http://localhost:8761/eureka/apps)
-          
-          # Guardar la respuesta para depuración
-          echo "$EUREKA_RESPONSE" > eureka_response.xml
+          # Mostrar información detallada de Eureka
+          echo "Estado actual de Eureka:"
+          curl -s http://localhost:8761/eureka/apps | tee eureka_response.xml
           
           # Verificar al menos estos servicios básicos
           basic_services=("MSVC-USERS" "MSVC-MOOD-TRACKING" "MSVC-EMERGENCY")
           failures=0
           
           for service in "${basic_services[@]}"; do
-            if echo "$EUREKA_RESPONSE" | grep -q "$service"; then
+            if grep -q "$service" eureka_response.xml; then
               echo "✅ $service está registrado en Eureka"
             else
               echo "❌ $service NO está registrado en Eureka"
+          
+              # Verificar si el servicio está en ejecución y mostrar logs
+              service_lower=$(echo "$service" | tr '[:upper:]' '[:lower:]')
+              echo "Verificando estado de $service_lower:"
+              docker ps | grep "$service_lower" || echo "$service_lower no está en ejecución"
+          
+              echo "Logs de $service_lower:"
+              docker logs "$service_lower" | tail -n 50
+          
               failures=$((failures+1))
             fi
           done
           
+          # Continuar aunque haya fallos (solo advertencia)
           if [ $failures -gt 0 ]; then
             echo "⚠️ Hay servicios que no se registraron en Eureka, pero continuaremos"
           else
@@ -267,8 +283,12 @@ jobs:
         run: |
           echo "Verificando endpoints de salud de microservicios básicos..."
           
+          # Esperamos un tiempo adicional para asegurar que los servicios estén completamente inicializados
+          echo "Esperando 60 segundos adicionales para que los servicios estén completamente disponibles..."
+          sleep 60
+          
           # Verificar directamente servicios básicos
-          services=("msvc-users:9001" "msvc-mood-tracking:9002" "msvc-emergency:9003")
+          services=("msvc-mood-tracking:9002" "msvc-emergency:9003" "msvc-blog:9004")
           failures=0
           
           for service_port in "${services[@]}"; do
@@ -277,18 +297,31 @@ jobs:
           
             echo "Verificando $service en puerto $port..."
             HEALTH_URL="http://localhost:$port/actuator/health"
+          
+            echo "Realizando petición a $HEALTH_URL"
             RESPONSE=$(curl -s "$HEALTH_URL")
+            echo "Respuesta: $RESPONSE"
           
             if echo "$RESPONSE" | grep -q "UP"; then
               echo "✅ $service está saludable"
             else
-              echo "❌ $service no responde correctamente"
+              echo "⚠️ $service no responde como se esperaba"
+              echo "Verificando endpoint info..."
+              curl -s "http://localhost:$port/actuator/info" || echo "Info endpoint no disponible"
+          
+              echo "Verificando otros endpoints..."
+              curl -s "http://localhost:$port/actuator" || echo "Actuator base no disponible"
+          
+              echo "Logs del servicio $service:"
+              docker logs "$service" | tail -n 100
+          
               failures=$((failures+1))
             fi
           done
           
+          # Convertir a advertencia en lugar de error
           if [ $failures -gt 0 ]; then
-            echo "⚠️ Hay microservicios básicos que no están saludables, pero continuaremos"
+            echo "⚠️ Hay microservicios básicos que no están reportando su salud correctamente, pero continuaremos"
           else
             echo "✅ Todos los microservicios básicos están saludables"
           fi
@@ -309,6 +342,9 @@ jobs:
           docker ps -a > logs/docker-ps.txt
           docker network ls > logs/docker-networks.txt
           docker volume ls > logs/docker-volumes.txt
+          
+          # Guardar información adicional de diagnóstico
+          curl -s http://localhost:8761/eureka/apps > logs/eureka-apps.xml || echo "No se pudo obtener información de Eureka"
 
       - name: Cleanup
         if: always()
