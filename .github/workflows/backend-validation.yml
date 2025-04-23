@@ -203,7 +203,7 @@ jobs:
           
           echo "Verificando cada servicio individualmente..."
           all_services=("config-server" "eureka-server" "postgres" "keycloak" "msvc-users" "msvc-mood-tracking" "msvc-emergency" "msvc-auth" "msvc-blog" "gateway")
-          essential_services=("config-server" "eureka-server" "postgres" "msvc-users" "msvc-mood-tracking" "msvc-emergency")
+          essential_services=("config-server" "eureka-server" "postgres" "msvc-blog" "msvc-auth" "keycloak" "msvc-emergency" "gateway")
           
           # Verificar primero servicios esenciales
           essential_failures=0
@@ -217,7 +217,7 @@ jobs:
           done
           
           # Verificar servicios opcionales
-          optional_services=("keycloak" "msvc-auth" "msvc-blog" "gateway")
+          optional_services=("msvc-users" "msvc-mood-tracking")
           optional_failures=0
           for service in "${optional_services[@]}"; do
             if docker ps | grep -q "$service"; then
@@ -251,7 +251,7 @@ jobs:
           curl -s http://localhost:8761/eureka/apps | tee eureka_response.xml
           
           # Verificar al menos estos servicios básicos
-          basic_services=("MSVC-USERS" "MSVC-MOOD-TRACKING" "MSVC-EMERGENCY")
+          basic_services=("MSVC-BLOG" "MSVC-AUTH" "MSVC-EMERGENCY")
           failures=0
           
           for service in "${basic_services[@]}"; do
