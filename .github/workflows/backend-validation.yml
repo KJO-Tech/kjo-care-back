@@ -288,7 +288,7 @@ jobs:
           sleep 60
           
           # Verificar directamente servicios básicos
-          services=("msvc-mood-tracking:9002" "msvc-emergency:9003" "msvc-blog:9004")
+          services=("msvc-auth:9091" "msvc-emergency:9003" "msvc-blog:9004")
           failures=0
           
           for service_port in "${services[@]}"; do
