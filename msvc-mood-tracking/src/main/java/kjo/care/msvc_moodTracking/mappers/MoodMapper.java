@@ -1,7 +1,7 @@
 package kjo.care.msvc_moodTracking.mappers;
 
-import kjo.care.msvc_moodTracking.DTOs.MoodRequestDto;
-import kjo.care.msvc_moodTracking.DTOs.MoodResponseDto;
+import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodRequestDto;
+import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodResponseDto;
 import kjo.care.msvc_moodTracking.Entities.MoodEntity;
 import kjo.care.msvc_moodTracking.enums.MoodState;
 import org.modelmapper.ModelMapper;

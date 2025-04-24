@@ -1,4 +1,4 @@
-package kjo.care.msvc_moodTracking.DTOs;
+package kjo.care.msvc_moodTracking.DTOs.MoodDTOs;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
