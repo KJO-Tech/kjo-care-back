@@ -2,6 +2,7 @@ package kjo.care.msvc_moodTracking.services.Impl;
 
 
 import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodResponseDto;
+import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodStatisticsDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodUserRequestDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.UserDTO;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.UserMoodDTO;
@@ -22,10 +23,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -70,7 +74,9 @@ public class MoodUserServiceImpl implements MoodUserService {
     @Override
     public Flux<UserMoodDTO> getCurrentUserMoods(String userId) {
         log.info("Obteniendo estados de animo del usuario : {}", userId);
-        return Flux.fromIterable(moodUserRepository.findByUserId(userId))
+        return Mono.fromCallable(() -> moodUserRepository.findByUserId(userId))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMapMany(Flux::fromIterable)
                 .flatMap(moodUser -> getUserById(userId)
                         .map(userDTO -> UserMoodDTO.builder()
                                 .id(moodUser.getId())
@@ -200,6 +206,42 @@ public class MoodUserServiceImpl implements MoodUserService {
                 allMoodUsers.size(), userMoodMap.size());
 
         return result;
+    }
+
+    @Override
+    public Mono<MoodStatisticsDto> getMoodStatistics(int months) {
+        log.info("Calculando estadisticas de estados de animo para los ultimos {} meses", months);
+        LocalDateTime startDate = LocalDateTime.now().minusMonths(months);
+        return Mono.fromCallable(() -> {
+            List<MoodUser> moodUsers = moodUserRepository.findByRecordedDateAfter(startDate);
+            if (moodUsers.isEmpty()) {
+                log.info("No se encontraron registros para el periodo especifico");
+                return null;
+            }
+            Map<Long, Long> moodCountById = moodUsers.stream()
+                    .collect(Collectors.groupingBy(
+                            mu -> mu.getMood().getId(),
+                            Collectors.counting()
+                    ));
+            long totalMoods = moodUsers.size();
+            Map<String, Long> moodCounts = new HashMap<>();
+            Map<String, Double> moodPercentages = new HashMap<>();
+            moodCountById.forEach((moodId, count) -> {
+                MoodEntity mood = moodRepository.findById(moodId).orElse(null);
+                if (mood != null) {
+                    moodCounts.put(mood.getName(), count);
+                    double percentage = (count * 100.0) / totalMoods;
+                    moodPercentages.put(mood.getName(), Math.round(percentage * 100) / 100.0);
+                }
+            });
+            log.info("Se analizaron {} registros de estado de animo en los ultimos {} meses", totalMoods, months);
+            return MoodStatisticsDto.builder()
+                    .moodCounts(moodCounts)
+                    .moodPercentages(moodPercentages)
+                    .totalMoods(totalMoods)
+                    .timePeriod("Ultimos " + months + " meses")
+                    .build();
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
 }

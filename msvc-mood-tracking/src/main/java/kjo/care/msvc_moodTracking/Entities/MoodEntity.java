@@ -22,9 +22,9 @@ public class MoodEntity {
     private String name;
     @Column(name = "description")
     private String description;
-    @Enumerated(EnumType.STRING)
-    @Column(name = "state")
-    private MoodState state;
+//    @Enumerated(EnumType.STRING)
+//    @Column(name = "state")
+//    private MoodState state;
     @Column(name = "image")
     private String image;
     @Column(name = "color")

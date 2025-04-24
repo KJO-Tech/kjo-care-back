@@ -5,16 +5,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodResponseDto;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodStatisticsDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodUserRequestDto;
-import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.UserDTO;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.UserMoodDTO;
-import kjo.care.msvc_moodTracking.Entities.MoodUser;
-import kjo.care.msvc_moodTracking.Repositories.MoodUserRepository;
 import kjo.care.msvc_moodTracking.services.MoodUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,7 +21,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -35,8 +32,6 @@ import java.util.List;
 @SecurityRequirement(name = "securityToken")
 public class MoodTrackingUserController {
     private final MoodUserService moodUserService;
-    private final MoodUserRepository moodUserRepository;
-    private final ModelMapper modelMapper;
 
     @Operation(summary = "Obtener todos los usuarios con sus estados de ánimo",
             description = "Retorna todos los usuarios junto con sus registros de estado de ánimo")
@@ -50,6 +45,19 @@ public class MoodTrackingUserController {
         return ResponseEntity.ok(usersWithMoods);
     }
 
+    @Operation(summary = "Obtener estadísticas de estados de ánimo",
+            description = "Devuelve las estadísticas de los estados de ánimo registrados en un período determinado")
+    @ApiResponse(responseCode = "200", description = "Estadísticas obtenidas correctamente")
+    @GetMapping("/statistics")
+    public Mono<ResponseEntity<MoodStatisticsDto>> getMoodStatistics(
+            @RequestParam(defaultValue = "3") @Min(1) @Max(60) int months) {
+
+        log.info("Petición para obtener estadísticas de estados de ánimo de los últimos {} meses", months);
+
+        return moodUserService.getMoodStatistics(months)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.noContent().build());
+    }
 
     @Operation(summary = "Obtener estados de ánimo del usuario autenticado",
             description = "Devuelve todos los estados de ánimo registrados del usuario actual")

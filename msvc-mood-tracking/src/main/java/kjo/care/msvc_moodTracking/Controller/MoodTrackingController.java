@@ -18,7 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/mood-tracking")
+@RequestMapping("/")
 @RequiredArgsConstructor
 @Validated
 @Log4j2

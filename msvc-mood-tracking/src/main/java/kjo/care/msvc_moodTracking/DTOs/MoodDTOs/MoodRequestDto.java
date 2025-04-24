@@ -13,8 +13,6 @@ public class MoodRequestDto {
     private String name;
     @NotNull(message = "La descripcion es requerida")
     private String description;
-    @NotNull(message = "El estado es requerido")
-    private String state;
     @NotNull(message = "La imagen es requerida")
     private String image;
     @NotNull(message = "El color es requerido")

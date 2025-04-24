@@ -10,7 +10,7 @@ public class MoodResponseDto {
     private Long id;
     private String name;
     private String description;
-    private String state;
+//    private String state;
     private String image;
     private String color;
     private Boolean isActive;

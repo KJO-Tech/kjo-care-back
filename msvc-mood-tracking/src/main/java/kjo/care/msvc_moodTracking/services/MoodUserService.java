@@ -1,5 +1,6 @@
 package kjo.care.msvc_moodTracking.services;
 
+import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodStatisticsDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodUserRequestDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.UserDTO;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.UserMoodDTO;
@@ -18,4 +19,5 @@ public interface MoodUserService {
 
     List<UserMoodDTO> getAllUsersWithMoods();
 
+    Mono<MoodStatisticsDto> getMoodStatistics(int months);
 }
