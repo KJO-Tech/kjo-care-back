@@ -13,7 +13,4 @@ import lombok.NoArgsConstructor;
 public class ReactionRequestDto {
     @NotNull(message = "El blog no puede estar vacío")
     private Long blogId;
-
-    @NotNull(message = "La reacción no puede estar vacía")
-    private String type;
 }

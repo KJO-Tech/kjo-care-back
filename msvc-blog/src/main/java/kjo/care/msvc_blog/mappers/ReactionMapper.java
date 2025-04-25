@@ -27,6 +27,11 @@ public class ReactionMapper {
                 .setSkipNullEnabled(true)
                 .setMatchingStrategy(MatchingStrategies.STRICT);
 
+        modelMapper.createTypeMap(Reaction.class, ReactionResponseDto.class)
+                .addMappings(mapper -> {
+                    mapper.map(src -> src.getBlog().getId(), ReactionResponseDto::setBlogId);
+                });
+
         TypeMap<ReactionRequestDto, Reaction> requestMap = modelMapper.createTypeMap(ReactionRequestDto.class, Reaction.class);
         requestMap.addMappings(mapper -> {
             mapper.skip(Reaction::setId);
@@ -40,6 +45,7 @@ public class ReactionMapper {
         UserInfoDto userId = userClient.findUserById(entity.getUserId());
         ReactionResponseDto dto = modelMapper.map(entity, ReactionResponseDto.class);
         dto.setUserId(userId);
+        dto.setBlogId(entity.getBlog().getId());
         return dto;
     }
 
@@ -47,7 +53,4 @@ public class ReactionMapper {
         return  modelMapper.map(dto, Reaction.class);
     }
 
-    public void updateEntityFromDto(ReactionRequestDto dto, Reaction entity) {
-        modelMapper.map(dto, entity);
-    }
 }

@@ -10,6 +10,5 @@ import java.util.List;
 public interface ReactionService {
     List<ReactionResponseDto> findAllReactions();
     ReactionResponseDto saveReaction(ReactionRequestDto dto, String userId);
-    ReactionResponseDto updateReaction (Long id , ReactionRequestDto dto, String authenticatedUserId);
     void deleteReaction(Long id,  String authenticatedUserId);
 }
