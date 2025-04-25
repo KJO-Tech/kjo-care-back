@@ -1,0 +1,15 @@
+package kjo.care.msvc_blog.services;
+
+import kjo.care.msvc_blog.dto.BlogRequestDto;
+import kjo.care.msvc_blog.dto.BlogResponseDto;
+import kjo.care.msvc_blog.dto.ReactionRequestDto;
+import kjo.care.msvc_blog.dto.ReactionResponseDto;
+
+import java.util.List;
+
+public interface ReactionService {
+    List<ReactionResponseDto> findAllReactions();
+    ReactionResponseDto saveReaction(ReactionRequestDto dto, String userId);
+    ReactionResponseDto updateReaction (Long id , ReactionRequestDto dto, String authenticatedUserId);
+    void deleteReaction(Long id,  String authenticatedUserId);
+}
