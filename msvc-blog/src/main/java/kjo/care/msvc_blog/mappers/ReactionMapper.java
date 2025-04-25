@@ -3,7 +3,6 @@ package kjo.care.msvc_blog.mappers;
 import jakarta.annotation.PostConstruct;
 import kjo.care.msvc_blog.client.UserClient;
 import kjo.care.msvc_blog.dto.*;
-import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Reaction;
 import kjo.care.msvc_blog.repositories.ReactionRepository;
 import lombok.RequiredArgsConstructor;

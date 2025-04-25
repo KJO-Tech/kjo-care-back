@@ -1,7 +1,5 @@
 package kjo.care.msvc_blog.services;
 
-import kjo.care.msvc_blog.dto.BlogRequestDto;
-import kjo.care.msvc_blog.dto.BlogResponseDto;
 import kjo.care.msvc_blog.dto.ReactionRequestDto;
 import kjo.care.msvc_blog.dto.ReactionResponseDto;
 

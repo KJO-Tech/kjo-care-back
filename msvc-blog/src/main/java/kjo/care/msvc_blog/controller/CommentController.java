@@ -1,24 +1,16 @@
 package kjo.care.msvc_blog.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
-import kjo.care.msvc_blog.dto.BlogRequestDto;
-import kjo.care.msvc_blog.dto.BlogResponseDto;
 import kjo.care.msvc_blog.dto.CommentRequestDto;
 import kjo.care.msvc_blog.dto.CommentResponseDto;
-import kjo.care.msvc_blog.entities.Comment;
-import kjo.care.msvc_blog.services.BlogService;
 import kjo.care.msvc_blog.services.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;

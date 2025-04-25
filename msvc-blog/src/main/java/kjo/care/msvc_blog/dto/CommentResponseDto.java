@@ -1,9 +1,6 @@
 package kjo.care.msvc_blog.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.*;
-import kjo.care.msvc_blog.entities.Blog;
-import kjo.care.msvc_blog.entities.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

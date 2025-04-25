@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import kjo.care.msvc_blog.dto.BlogRequestDto;
 import kjo.care.msvc_blog.dto.BlogResponseDto;
-import kjo.care.msvc_blog.dto.CategoryRequestDto;
-import kjo.care.msvc_blog.dto.CategoryResponseDto;
 import kjo.care.msvc_blog.services.BlogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
