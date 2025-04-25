@@ -122,6 +122,11 @@ services:
       - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
       - EUREKA_CLIENT_FETCH_REGISTRY=true
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - KEYCLOAK_SERVER_URL=${KEYCLOAK_SERVER_URL:-http://keycloak:9090}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-kjo-care-realm-dev}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-kjo-care-client}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - KEYCLOAK_HOSTNAME=${KEYCLOAK_HOSTNAME:-localhost}
     networks:
       - spring-cloud-network
 
