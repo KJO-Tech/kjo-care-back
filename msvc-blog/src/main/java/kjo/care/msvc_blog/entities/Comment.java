@@ -24,6 +24,7 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name = "blogId", referencedColumnName = "id")
     private Blog blog;
+
     private String userId;
 
     @Column(name = "content", columnDefinition = "TEXT")
