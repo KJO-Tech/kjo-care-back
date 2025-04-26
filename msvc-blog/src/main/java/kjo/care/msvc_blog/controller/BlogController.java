@@ -8,16 +8,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
-import kjo.care.msvc_blog.dto.BlogDetailsDto;
-import kjo.care.msvc_blog.dto.BlogPageResponseDto;
-import kjo.care.msvc_blog.dto.BlogRequestDto;
-import kjo.care.msvc_blog.dto.BlogResponseDto;
+import kjo.care.msvc_blog.dto.*;
 import kjo.care.msvc_blog.services.BlogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
@@ -39,9 +37,10 @@ public class BlogController {
     @Operation(summary = "Obtener todos los blogs", description = "Devuelve todos los blogs existentes")
     @ApiResponse(responseCode = "200", description = "Blogs obtenidas correctamente")
     @ApiResponse(responseCode = "204", description = "No se encontraron Blogs")
+    @PreAuthorize("hasRole('admin_client_role')")
     @GetMapping("/all")
     public ResponseEntity<?> findAll() {
-        List<BlogResponseDto> response = blogService.findAllBlogs();
+        List<BlogOverviewDto> response = blogService.findAllBlogs();
         return ResponseEntity.ok(response);
     }
 

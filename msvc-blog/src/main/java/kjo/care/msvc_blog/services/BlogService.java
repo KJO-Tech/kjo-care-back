@@ -1,14 +1,11 @@
 package kjo.care.msvc_blog.services;
 
-import kjo.care.msvc_blog.dto.BlogDetailsDto;
-import kjo.care.msvc_blog.dto.BlogPageResponseDto;
-import kjo.care.msvc_blog.dto.BlogRequestDto;
-import kjo.care.msvc_blog.dto.BlogResponseDto;
+import kjo.care.msvc_blog.dto.*;
 
 import java.util.List;
 
 public interface BlogService {
-    List<BlogResponseDto> findAllBlogs();
+    List<BlogOverviewDto> findAllBlogs();
     List<BlogResponseDto> findAllBlogsPublished();
     BlogPageResponseDto findBlogs(int page, int size);
     BlogResponseDto findBlogById(Long id);

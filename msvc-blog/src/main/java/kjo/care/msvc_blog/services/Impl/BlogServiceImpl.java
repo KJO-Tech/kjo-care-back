@@ -5,7 +5,6 @@ import kjo.care.msvc_blog.dto.*;
 
 import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Category;
-import kjo.care.msvc_blog.entities.Comment;
 import kjo.care.msvc_blog.enums.BlogState;
 import kjo.care.msvc_blog.exceptions.EntityNotFoundException;
 import kjo.care.msvc_blog.mappers.BlogMapper;
@@ -51,8 +50,13 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BlogResponseDto> findAllBlogs() {
-        return blogRepository.findAll().stream().map(blogMapper::entityToDto).toList();
+    public List<BlogOverviewDto> findAllBlogs() {
+        List<Blog> blogs = blogRepository.findAll();
+        List<BlogOverviewDto> blogOverviews = blogs.stream()
+                .map(blogMapper::entityToDto)
+                .map(this::findBlogOverview)
+                .toList();
+        return blogOverviews;
     }
 
     @Override
