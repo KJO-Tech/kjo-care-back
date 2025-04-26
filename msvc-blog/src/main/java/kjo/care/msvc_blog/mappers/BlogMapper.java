@@ -3,13 +3,12 @@ package kjo.care.msvc_blog.mappers;
 
 import jakarta.annotation.PostConstruct;
 import kjo.care.msvc_blog.client.UserClient;
-import kjo.care.msvc_blog.dto.BlogRequestDto;
-import kjo.care.msvc_blog.dto.BlogResponseDto;
-import kjo.care.msvc_blog.dto.CategoryResponseDto;
-import kjo.care.msvc_blog.dto.UserInfoDto;
+import kjo.care.msvc_blog.dto.*;
 import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Category;
 import kjo.care.msvc_blog.repositories.CategoryRepository;
+import kjo.care.msvc_blog.repositories.CommentRepository;
+import kjo.care.msvc_blog.repositories.ReactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
@@ -24,6 +23,8 @@ public class BlogMapper {
 
     private final ModelMapper modelMapper;
     private final CategoryRepository categoryRepository;
+    private final ReactionRepository reactionRepository;
+    private final CommentRepository commentRepository;
     private final UserClient userClient;
 
     @PostConstruct

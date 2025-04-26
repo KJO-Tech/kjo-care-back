@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
+import kjo.care.msvc_blog.dto.BlogDetailsDto;
+import kjo.care.msvc_blog.dto.BlogPageResponseDto;
 import kjo.care.msvc_blog.dto.BlogRequestDto;
 import kjo.care.msvc_blog.dto.BlogResponseDto;
 import kjo.care.msvc_blog.services.BlogService;
@@ -46,18 +48,38 @@ public class BlogController {
     @Operation(summary = "Obtener todos los blogs Publicados", description = "Devuelve todos los blogs publicados ")
     @ApiResponse(responseCode = "200", description = "Blogs obtenidos correctamente")
     @ApiResponse(responseCode = "204", description = "No se encontraron Blogs")
-    @GetMapping("")
+    @GetMapping("/published")
     public ResponseEntity<?> findAllPublished() {
         List<BlogResponseDto> response = blogService.findAllBlogsPublished();
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Obtener todos los blogs Publicados", description = "Devuelve todos los blogs publicados ")
+    @ApiResponse(responseCode = "200", description = "Blogs obtenidos correctamente")
+    @ApiResponse(responseCode = "204", description = "No se encontraron Blogs")
+    @GetMapping("")
+    public ResponseEntity<BlogPageResponseDto> getAllPublishedBlogs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        BlogPageResponseDto response = blogService.findBlogs(page, size);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Obtener Blog por ID", description = "Devuelve un blog por su ID")
     @ApiResponse(responseCode = "200", description = "Blog obtenido correctamente")
     @ApiResponse(responseCode = "404", description = "Blog no encontrado")
-    @GetMapping("/{id}")
+    @GetMapping("/getById/{id}")
     public ResponseEntity<?> getById(@PathVariable @Positive(message = "El ID debe ser positivo") Long id) {
         BlogResponseDto response = blogService.findBlogById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Obtener Detalles de un Blog", description = "Devuelve los detalles de un blog")
+    @ApiResponse(responseCode = "200", description = "Detalles obtenidos correctamente")
+    @ApiResponse(responseCode = "404", description = "Detalles no encontrados")
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getDetailsById(@PathVariable @Positive(message = "El ID debe ser positivo") Long id) {
+        BlogDetailsDto response = blogService.findBlogDetails(id);
         return ResponseEntity.ok(response);
     }
 
