@@ -66,7 +66,6 @@ public class CommentServiceImpl implements CommentService {
         return commentMapper.entityToDto(comment);
     }
 
-
     @Override
     @Transactional
     public CommentResponseDto updateComment(Long id, CommentRequestDto dto, String userId) {

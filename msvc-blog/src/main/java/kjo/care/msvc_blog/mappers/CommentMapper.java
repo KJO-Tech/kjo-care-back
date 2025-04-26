@@ -12,6 +12,7 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -59,5 +60,21 @@ public class CommentMapper {
         modelMapper.getConfiguration().setSkipNullEnabled(true);
         modelMapper.map(dto, entity);
         entity.setModifiedDate(LocalDate.now());
+    }
+
+    public CommentSummaryDto mapComment(Comment comment) {
+        UserInfoDto userInfo = userClient.findUserById(comment.getUserId());
+        List<Comment> replies = commentRepository.findByParentId(comment.getId());
+
+        List<CommentSummaryDto> mappedReplies = replies.stream()
+                .map(this::mapComment)
+                .toList();
+
+        return CommentSummaryDto.builder()
+                .userId(userInfo)
+                .content(comment.getContent())
+                .date(comment.getCommentDate())
+                .childrenComments(mappedReplies)
+                .build();
     }
 }
