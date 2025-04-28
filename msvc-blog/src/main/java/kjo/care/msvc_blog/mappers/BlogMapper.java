@@ -3,13 +3,12 @@ package kjo.care.msvc_blog.mappers;
 
 import jakarta.annotation.PostConstruct;
 import kjo.care.msvc_blog.client.UserClient;
-import kjo.care.msvc_blog.dto.BlogRequestDto;
-import kjo.care.msvc_blog.dto.BlogResponseDto;
-import kjo.care.msvc_blog.dto.CategoryResponseDto;
-import kjo.care.msvc_blog.dto.UserInfoDto;
+import kjo.care.msvc_blog.dto.*;
 import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Category;
 import kjo.care.msvc_blog.repositories.CategoryRepository;
+import kjo.care.msvc_blog.repositories.CommentRepository;
+import kjo.care.msvc_blog.repositories.ReactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
@@ -24,6 +23,8 @@ public class BlogMapper {
 
     private final ModelMapper modelMapper;
     private final CategoryRepository categoryRepository;
+    private final ReactionRepository reactionRepository;
+    private final CommentRepository commentRepository;
     private final UserClient userClient;
 
     @PostConstruct
@@ -42,12 +43,12 @@ public class BlogMapper {
             mapper.skip(Blog::setPublishedDate);
             mapper.skip(Blog::setModifiedDate);
             mapper.skip(Blog::setCategory);
+            mapper.skip(Blog::setState);
         });
 
     }
 
     public BlogResponseDto entityToDto(Blog entity) {
-
         UserInfoDto author = userClient.findUserById(entity.getUserId());
         BlogResponseDto dto = modelMapper.map(entity, BlogResponseDto.class);
         dto.setAuthor(author);
@@ -56,11 +57,17 @@ public class BlogMapper {
     }
 
     public Blog dtoToEntity(BlogRequestDto dto) {
-        return modelMapper.map(dto, Blog.class);
+        Blog blog = modelMapper.map(dto, Blog.class);
+        return blog;
     }
 
     public void updateEntityFromDto(BlogRequestDto dto, Blog entity) {
         modelMapper.getConfiguration().setSkipNullEnabled(true);
+        modelMapper.typeMap(BlogRequestDto.class, Blog.class)
+                .addMappings(mapper -> {
+                    mapper.skip(Blog::setImage);
+                    mapper.skip(Blog::setVideo);
+                });
         modelMapper.map(dto, entity);
         entity.setModifiedDate(LocalDate.now());
     }

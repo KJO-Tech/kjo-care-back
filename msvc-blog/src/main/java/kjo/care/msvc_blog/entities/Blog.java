@@ -1,12 +1,15 @@
 package kjo.care.msvc_blog.entities;
 
 import jakarta.persistence.*;
+import kjo.care.msvc_blog.enums.BlogState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -39,10 +42,21 @@ public class Blog {
     @Column(name = "image", nullable = true)
     private String image;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state")
+    private BlogState state;
+
     @Column(name = "publishedDate")
     private LocalDate publishedDate = LocalDate.now();
 
     @Column(name = "modifiedDate")
     private LocalDate modifiedDate = LocalDate.now();
 
+    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Reaction> reactions = new ArrayList<>();
 }
