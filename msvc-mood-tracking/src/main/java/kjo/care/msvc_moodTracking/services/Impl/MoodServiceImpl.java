@@ -1,15 +1,16 @@
-package kjo.care.msvc_moodTracking.services;
+package kjo.care.msvc_moodTracking.services.Impl;
 
-import kjo.care.msvc_moodTracking.DTOs.MoodPageResponseDto;
-import kjo.care.msvc_moodTracking.DTOs.MoodRequestDto;
-import kjo.care.msvc_moodTracking.DTOs.MoodResponseDto;
+import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodPageResponseDto;
+import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodRequestDto;
+import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodResponseDto;
 import kjo.care.msvc_moodTracking.Entities.MoodEntity;
 import kjo.care.msvc_moodTracking.Repositories.MoodRepository;
 import kjo.care.msvc_moodTracking.exceptions.MoodEntityNotFoundException;
 import kjo.care.msvc_moodTracking.mappers.MoodMapper;
-import kjo.care.msvc_moodTracking.services.Impl.MoodService;
+import kjo.care.msvc_moodTracking.services.MoodService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class MoodServiceImpl implements MoodService {
     private final MoodRepository moodRepository;
     private final MoodMapper moodMapper;
+    private final ModelMapper modelMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -68,10 +70,10 @@ public class MoodServiceImpl implements MoodService {
     public MoodResponseDto updateMood(Long id, MoodRequestDto dto) {
         log.info("Actualizando mood con id {}", id);
         MoodEntity mood = findExistMoodById(id);
-        moodMapper.updateEntityFromDto(dto, mood);
-        moodRepository.save(mood);
+        modelMapper.map(dto, mood);
+        MoodEntity updatedMood = moodRepository.save(mood);
         log.info("Mood actualizado con id {}", id);
-        return moodMapper.entityToDto(mood);
+        return moodMapper.entityToDto(updatedMood);
     }
 
     @Transactional

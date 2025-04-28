@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.http.HttpHeaders;
@@ -36,10 +37,10 @@ import org.springframework.http.HttpHeaders;
                         description = "Production Server",
                         url = "https://"
                 )
-        }
-        /*security = @SecurityRequirement(
+        },
+        security = @SecurityRequirement(
                 name = "securityToken"
-        )*/
+        )
 )
 @SecurityScheme(
         name = "securityToken",

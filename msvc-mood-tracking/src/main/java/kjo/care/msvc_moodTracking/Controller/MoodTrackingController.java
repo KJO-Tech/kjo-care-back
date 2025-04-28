@@ -5,9 +5,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
-import kjo.care.msvc_moodTracking.DTOs.*;
-import kjo.care.msvc_moodTracking.services.Impl.MoodService;
-import kjo.care.msvc_moodTracking.services.Impl.MoodUserService;
+import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodPageResponseDto;
+import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodRequestDto;
+import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodResponseDto;
+import kjo.care.msvc_moodTracking.services.MoodService;
+import kjo.care.msvc_moodTracking.services.MoodUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -16,7 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/mood-tracking")
+@RequestMapping("/")
 @RequiredArgsConstructor
 @Validated
 @Log4j2

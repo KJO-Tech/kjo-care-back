@@ -1,6 +1,8 @@
 {
   "id": "ee5a7ffc-b6dd-4884-b161-8d6072ae3bb8",
   "realm": "kjo-care-realm-dev",
+  "displayName": "KJO CARE",
+  "displayNameHtml": "",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -27,9 +29,9 @@
   "oauth2DevicePollingInterval": 5,
   "enabled": true,
   "sslRequired": "external",
-  "registrationAllowed": false,
-  "registrationEmailAsUsername": false,
-  "rememberMe": false,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "rememberMe": true,
   "verifyEmail": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
@@ -169,14 +171,14 @@
                 "manage-clients",
                 "manage-users",
                 "view-users",
-                "view-realm",
                 "manage-events",
+                "view-realm",
                 "create-client",
                 "query-groups",
                 "manage-authorization",
                 "query-clients",
-                "view-events",
                 "impersonation",
+                "view-events",
                 "query-realms",
                 "view-clients",
                 "view-authorization",
@@ -506,24 +508,6 @@
   "webAuthnPolicyPasswordlessAvoidSameAuthenticatorRegister": false,
   "webAuthnPolicyPasswordlessAcceptableAaguids": [],
   "webAuthnPolicyPasswordlessExtraOrigins": [],
-  "users": [
-    {
-      "id": "593c29a0-5821-4d9b-9101-b6ccce46635f",
-      "username": "service-account-kjo-care-client",
-      "emailVerified": false,
-      "createdTimestamp": 1744524438984,
-      "enabled": true,
-      "totp": false,
-      "serviceAccountClientId": "kjo-care-client",
-      "disableableCredentialTypes": [],
-      "requiredActions": [],
-      "realmRoles": [
-        "default-roles-kjo-care-realm-dev"
-      ],
-      "notBefore": 0,
-      "groups": []
-    }
-  ],
   "scopeMappings": [
     {
       "clientScope": "offline_access",
@@ -547,8 +531,10 @@
     {
       "id": "101dd307-d6f9-4d34-a6b3-455376e37932",
       "clientId": "account",
-      "name": "${client_account}",
+      "name": "",
+      "description": "",
       "rootUrl": "${authBaseUrl}",
+      "adminUrl": "",
       "baseUrl": "/realms/kjo-care-realm-dev/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
@@ -569,7 +555,12 @@
       "frontchannelLogout": false,
       "protocol": "openid-connect",
       "attributes": {
-        "post.logout.redirect.uris": "+"
+        "oidc.ciba.grant.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "+",
+        "display.on.consent.screen": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.revoke.offline.tokens": "false"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
@@ -592,7 +583,9 @@
       "id": "c70ce40b-92e3-4ef0-afda-04ffc3ce9d7c",
       "clientId": "account-console",
       "name": "${client_account-console}",
+      "description": "",
       "rootUrl": "${authBaseUrl}",
+      "adminUrl": "",
       "baseUrl": "/realms/kjo-care-realm-dev/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
@@ -613,8 +606,14 @@
       "frontchannelLogout": false,
       "protocol": "openid-connect",
       "attributes": {
+        "oidc.ciba.grant.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "login_theme": "keycloak",
         "post.logout.redirect.uris": "+",
-        "pkce.code.challenge.method": "S256"
+        "display.on.consent.screen": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "pkce.code.challenge.method": "S256",
+        "backchannel.logout.revoke.offline.tokens": "false"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
@@ -663,7 +662,9 @@
       "publicClient": true,
       "frontchannelLogout": false,
       "protocol": "openid-connect",
-      "attributes": {},
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
       "nodeReRegistrationTimeout": 0,
@@ -701,7 +702,9 @@
       "publicClient": false,
       "frontchannelLogout": false,
       "protocol": "openid-connect",
-      "attributes": {},
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
       "nodeReRegistrationTimeout": 0,
@@ -724,19 +727,20 @@
       "clientId": "kjo-care-client",
       "name": "kjo-care-client",
       "description": "",
-      "rootUrl": "http://localhost:8080",
+      "rootUrl": "http://localhost:4200",
       "adminUrl": "http://localhost:8080",
-      "baseUrl": "http://localhost:8080",
+      "baseUrl": "http://localhost:4200",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
       "redirectUris": [
-        "http://localhost:8080/*"
+        "https://kjo-mind-care.netlify.app/*",
+        "http://localhost:4200/*"
       ],
       "webOrigins": [
-        "*"
+        "https://kjo-mind-care.netlify.app",
+        "http://localhost:4200"
       ],
       "notBefore": 0,
       "bearerOnly": false,
@@ -744,18 +748,26 @@
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": true,
-      "serviceAccountsEnabled": true,
-      "publicClient": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": true,
       "frontchannelLogout": true,
       "protocol": "openid-connect",
       "attributes": {
-        "oidc.ciba.grant.enabled": "false",
         "client.secret.creation.time": "1744524438",
-        "backchannel.logout.session.required": "true",
-        "post.logout.redirect.uris": "http://localhost:8080",
-        "display.on.consent.screen": "false",
+        "post.logout.redirect.uris": "http://localhost:4200/*##https://kjo-mind-care.netlify.app/*",
         "oauth2.device.authorization.grant.enabled": "false",
-        "backchannel.logout.revoke.offline.tokens": "false"
+        "backchannel.logout.revoke.offline.tokens": "false",
+        "use.refresh.tokens": "true",
+        "oidc.ciba.grant.enabled": "false",
+        "client.use.lightweight.access.token.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "client_credentials.use_refresh_token": "false",
+        "acr.loa.map": "{}",
+        "require.pushed.authorization.requests": "false",
+        "tls.client.certificate.bound.access.tokens": "false",
+        "display.on.consent.screen": "false",
+        "pkce.code.challenge.method": "S256",
+        "token.response.type.bearer.lower-case": "false"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
@@ -770,6 +782,7 @@
           "config": {
             "user.session.note": "clientHost",
             "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
             "id.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "clientHost",
@@ -785,6 +798,7 @@
           "config": {
             "user.session.note": "clientAddress",
             "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
             "id.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "clientAddress",
@@ -800,6 +814,7 @@
           "config": {
             "user.session.note": "client_id",
             "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
             "id.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "client_id",
@@ -841,7 +856,9 @@
       "publicClient": false,
       "frontchannelLogout": false,
       "protocol": "openid-connect",
-      "attributes": {},
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
       "nodeReRegistrationTimeout": 0,
@@ -990,7 +1007,8 @@
           "config": {
             "id.token.claim": "true",
             "introspection.token.claim": "true",
-            "access.token.claim": "true"
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
           }
         }
       ]
@@ -1365,6 +1383,7 @@
           "config": {
             "introspection.token.claim": "true",
             "multivalued": "true",
+            "userinfo.token.claim": "true",
             "user.attribute": "foo",
             "id.token.claim": "true",
             "access.token.claim": "true",
@@ -1495,7 +1514,24 @@
   "enabledEventTypes": [],
   "adminEventsEnabled": false,
   "adminEventsDetailsEnabled": false,
-  "identityProviders": [],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "internalId": "1a9eb9d7-e870-4a98-b150-ed28ca94a7de",
+      "providerId": "google",
+      "enabled": true,
+      "updateProfileFirstLoginMode": "on",
+      "trustEmail": false,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "config": {
+        "clientSecret": "**********",
+        "clientId": "778572355087-rhjhdnl3uem98i5rl5hhcnl3m7s2qa9p.apps.googleusercontent.com"
+      }
+    }
+  ],
   "identityProviderMappers": [],
   "components": {
     "org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy": [
@@ -1574,14 +1610,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-sha256-pairwise-sub-mapper",
-            "oidc-usermodel-attribute-mapper",
-            "oidc-address-mapper",
-            "saml-user-attribute-mapper",
-            "oidc-full-name-mapper",
+            "saml-user-property-mapper",
             "saml-role-list-mapper",
+            "saml-user-attribute-mapper",
+            "oidc-sha256-pairwise-sub-mapper",
+            "oidc-full-name-mapper",
             "oidc-usermodel-property-mapper",
-            "saml-user-property-mapper"
+            "oidc-usermodel-attribute-mapper",
+            "oidc-address-mapper"
           ]
         }
       },
@@ -1593,14 +1629,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-usermodel-attribute-mapper",
-            "saml-user-attribute-mapper",
+            "saml-role-list-mapper",
             "oidc-sha256-pairwise-sub-mapper",
             "oidc-full-name-mapper",
             "oidc-address-mapper",
-            "saml-role-list-mapper",
             "oidc-usermodel-property-mapper",
-            "saml-user-property-mapper"
+            "oidc-usermodel-attribute-mapper",
+            "saml-user-property-mapper",
+            "saml-user-attribute-mapper"
           ]
         }
       }
@@ -1658,8 +1694,12 @@
       }
     ]
   },
-  "internationalizationEnabled": false,
-  "supportedLocales": [],
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "en",
+    "es"
+  ],
+  "defaultLocale": "es",
   "authenticationFlows": [
     {
       "id": "56a3d384-f725-46d5-b1f1-27c4a7ac4aa6",
@@ -2298,13 +2338,19 @@
   "firstBrokerLoginFlow": "first broker login",
   "attributes": {
     "cibaBackchannelTokenDeliveryMode": "poll",
-    "cibaExpiresIn": "120",
     "cibaAuthRequestedUserHint": "login_hint",
-    "oauth2DeviceCodeLifespan": "600",
+    "clientOfflineSessionMaxLifespan": "0",
     "oauth2DevicePollingInterval": "5",
-    "parRequestUriLifespan": "60",
+    "clientSessionIdleTimeout": "0",
+    "clientOfflineSessionIdleTimeout": "0",
     "cibaInterval": "5",
-    "realmReusableOtpCode": "false"
+    "realmReusableOtpCode": "false",
+    "cibaExpiresIn": "120",
+    "oauth2DeviceCodeLifespan": "600",
+    "parRequestUriLifespan": "60",
+    "clientSessionMaxLifespan": "0",
+    "frontendUrl": "",
+    "acr.loa.map": "{}"
   },
   "keycloakVersion": "24.0.2",
   "userManagedAccessAllowed": false,
