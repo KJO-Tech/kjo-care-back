@@ -20,6 +20,7 @@ public class BlogResponseDto {
     private String content;
     private String video;
     private String image;
+    private String state;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate publishedDate;
