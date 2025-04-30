@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodStatisticsDto;
+import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodTrendsAnalysisDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodUserRequestDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.UserMoodDTO;
 import kjo.care.msvc_moodTracking.services.MoodUserService;
@@ -92,5 +93,19 @@ public class MoodTrackingUserController {
 
         log.info("Estado de ánimo registrado correctamente para el usuario: {}", userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
+    @Operation(summary = "Obtener análisis de tendencias de estado de ánimo",
+            description = "Devuelve un análisis detallado de las tendencias en los estados de ánimo registrados")
+    @ApiResponse(responseCode = "200", description = "Análisis obtenido correctamente")
+    @GetMapping("/trends-analysis")
+    public Mono<ResponseEntity<MoodTrendsAnalysisDto>> getMoodTrendsAnalysis(
+            @RequestParam(defaultValue = "6") @Min(1) @Max(60) int months) {
+
+        log.info("Petición para obtener análisis de tendencias de estados de ánimo de los últimos {} meses", months);
+
+        return moodUserService.getMoodTrendsAnalysis(months)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.noContent().build());
     }
 }
