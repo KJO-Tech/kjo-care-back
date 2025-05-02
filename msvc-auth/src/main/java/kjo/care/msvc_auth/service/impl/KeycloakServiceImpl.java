@@ -1,9 +1,12 @@
 package kjo.care.msvc_auth.service.impl;
 
 
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
 import kjo.care.msvc_auth.dto.UserDTO;
 import kjo.care.msvc_auth.dto.UserInfoDto;
+import kjo.care.msvc_auth.dto.UserRequestDto;
+import kjo.care.msvc_auth.dto.UserResponseDto;
 import kjo.care.msvc_auth.service.IKeycloakService;
 import kjo.care.msvc_auth.util.KeycloakProvider;
 import lombok.NonNull;
@@ -18,8 +21,9 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -33,6 +37,29 @@ public class KeycloakServiceImpl implements IKeycloakService {
         return keycloakProvider.getRealmResource()
                 .users()
                 .list();
+    }
+
+    @Override
+    public List<UserResponseDto> findAllUsersRoles() {
+        List<UserRepresentation> users = keycloakProvider.getRealmResource().users().list();
+        List<UserResponseDto> usersWithRoles = new ArrayList<>();
+
+        for (UserRepresentation user : users) {
+            List<RoleRepresentation> roleRepresentations = keycloakProvider
+                    .getRealmResource()
+                    .users()
+                    .get(user.getId())
+                    .roles()
+                    .realmLevel()
+                    .listEffective();
+
+            List<String> roles = roleRepresentations.stream()
+                    .map(RoleRepresentation::getName)
+                    .collect(Collectors.toList());
+
+            usersWithRoles.add(new UserResponseDto(user.getId(),user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), roles));
+        }
+        return usersWithRoles;
     }
 
     @Override
@@ -119,23 +146,28 @@ public class KeycloakServiceImpl implements IKeycloakService {
     }
 
     @Override
-    public void updateUser(String userId, UserDTO userDTO) {
+    public void updateUser(String userId, UserRequestDto userDTO) {
 
-        CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
-        credentialRepresentation.setTemporary(false);
-        credentialRepresentation.setType(OAuth2Constants.PASSWORD);
-        credentialRepresentation.setValue(userDTO.getPassword());
+        List<UserRepresentation> existingUsers = keycloakProvider.getRealmResource()
+                .users()
+                .search(userDTO.getUsername(), true);
+
+        if (!existingUsers.isEmpty() && !existingUsers.get(0).getId().equals(userId)) {
+            throw new BadRequestException("El username ya está en uso");
+        }
 
         UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setId(userId);
         userRepresentation.setFirstName(userDTO.getFirstName());
         userRepresentation.setLastName(userDTO.getLastName());
         userRepresentation.setEmail(userDTO.getEmail());
         userRepresentation.setUsername(userDTO.getUsername());
         userRepresentation.setEmailVerified(true);
         userRepresentation.setEnabled(true);
-        userRepresentation.setCredentials(Collections.singletonList(credentialRepresentation));
 
         UserResource userResource = keycloakProvider.getUserResource().get(userId);
-        userResource.update(userRepresentation);
+        UserRepresentation userRep = userResource.toRepresentation();
+        userRep.setUsername(userDTO.getUsername());
+        userResource.update(userRep);
     }
 }
