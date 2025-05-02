@@ -18,5 +18,7 @@ public class UserResponseDto {
     private String email;
     private String firstName;
     private String lastName;
+    private Boolean enabled;
+    private Long createdTimestamp;
     private List<String> roles;
 }

@@ -57,7 +57,7 @@ public class KeycloakServiceImpl implements IKeycloakService {
                     .map(RoleRepresentation::getName)
                     .collect(Collectors.toList());
 
-            usersWithRoles.add(new UserResponseDto(user.getId(),user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), roles));
+            usersWithRoles.add(new UserResponseDto(user.getId(),user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), user.isEnabled(), user.getCreatedTimestamp(), roles));
         }
         return usersWithRoles;
     }
