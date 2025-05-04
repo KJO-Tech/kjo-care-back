@@ -44,8 +44,8 @@ microservices:
     url: lb://msvc-blog
   emergency:
     url: lb://msvc-emergency
-  users:
-    url: lb://msvc-users
+  auth:
+    url: lb://msvc-auth
 
 logging:
   level:

@@ -20,33 +20,34 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final BlogClient blogClient;
     private final MoodClient moodClient;
 
-    @Cacheable(value = "dashboardStats", key = "'main'")
-    @Override
-    public Mono<DashboardStatsDto> getDashboardStats() {
-        log.info("Obteniendo estadísticas del dashboard");
-
-        Mono<MetricData> moodStats = getMoodStats();
-
-        return moodStats.map(moodMetric -> DashboardStatsDto.builder()
-                .moodEntries(moodMetric)
-                .build());
-    }
     // @Cacheable(value = "dashboardStats", key = "'main'")
     // @Override
     // public Mono<DashboardStatsDto> getDashboardStats() {
-    // log.info("Obteniendo estadísticas del dashboard");
+    //     log.info("Obteniendo estadísticas del dashboard");
 
-    // Mono<MetricData> userStats = getUserStats();
+    //     Mono<MetricData> moodStats = getMoodStats();
+
+    //     return moodStats.map(moodMetric -> DashboardStatsDto.builder()
+    //             .moodEntries(moodMetric)
+    //             .build());
+    // }
+    @Cacheable(value = "dashboardStats", key = "'main'")
+    @Override
+    public Mono<DashboardStatsDto> getDashboardStats() {
+    log.info("Obteniendo estadísticas del dashboard");
+
+    Mono<MetricData> userStats = getUserStats();
     // Mono<MetricData> blogStats = getBlogStats();
-    // Mono<MetricData> moodStats = getMoodStats();
+    Mono<MetricData> moodStats = getMoodStats();
 
     // return Mono.zip(userStats, blogStats, moodStats)
-    // .map(tuple -> DashboardStatsDto.builder()
-    // .totalUsers(tuple.getT1())
+    return Mono.zip(userStats, moodStats)
+    .map(tuple -> DashboardStatsDto.builder()
+    .totalUsers(tuple.getT1())
     // .blogPosts(tuple.getT2())
-    // .moodEntries(tuple.getT3())
-    // .build());
-    // }
+    .moodEntries(tuple.getT2())
+    .build());
+    }
 
     private Mono<MetricData> getUserStats() {
         return Mono.zip(

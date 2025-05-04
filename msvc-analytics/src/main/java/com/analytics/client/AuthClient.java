@@ -15,18 +15,40 @@ public class AuthClient {
 
     private final WebClient.Builder webClientBuilder;
 
-    @Value("${microservices.users.url}")
+    @Value("${microservices.auth.url}")
     private String authServiceUrl;
 
     public Mono<Long> getTotalUsers() {
-        return webClientBuilder.build()
+        return getTotalUsersByPeriod(3);
+    }
+
+    public Mono<Long> getTotalUsersByPeriod(int months) {
+        return webClientBuilder
+                .baseUrl(authServiceUrl)
+                .build()
                 .get()
-                .uri(authServiceUrl + "/users/count")
+                .uri(uriBuilder -> uriBuilder
+                        .path("/users/count")
+                        .queryParam("months", months)
+                        .build())
                 .retrieve()
                 .bodyToMono(UserCountDto.class)
                 .map(UserCountDto::count)
                 .doOnError(error -> {
-                    log.error("Error al obtener total de usuarios: {}", error.getMessage());
+                    log.error("Error al obtener total de usuarios para {} meses: {}", months, error.getMessage());
+                })
+                .onErrorResume(error -> Mono.just(0L));
+    }
+
+    public Mono<Long> getAllUsers() {
+        return webClientBuilder.build()
+                .get()
+                .uri(authServiceUrl + "/users/count/all")
+                .retrieve()
+                .bodyToMono(UserCountDto.class)
+                .map(UserCountDto::count)
+                .doOnError(error -> {
+                    log.error("Error al obtener total de todos los usuarios: {}", error.getMessage());
                 })
                 .onErrorResume(error -> Mono.just(0L));
     }
