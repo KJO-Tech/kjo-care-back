@@ -20,6 +20,15 @@ jwt:
 server:
   port: 9005
 
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -27,6 +36,16 @@ springdoc:
     path: /swagger-ui.html
     url: /v3/api-docs
     enabled: true
+
+microservices:
+  mood-tracking:
+    url: lb://msvc-mood-tracking
+  blog:
+    url: lb://msvc-blog
+  emergency:
+    url: lb://msvc-emergency
+  users:
+    url: lb://msvc-users
 
 logging:
   level:

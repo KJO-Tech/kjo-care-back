@@ -1,6 +1,5 @@
 package kjo.care.msvc_moodTracking.services.Impl;
 
-
 import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodResponseDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.*;
 import kjo.care.msvc_moodTracking.Entities.MoodEntity;
@@ -92,10 +91,8 @@ public class MoodUserServiceImpl implements MoodUserService {
                                     .mood(modelMapper.map(moodUser.getMood(), MoodResponseDto.class))
                                     .recordedDate(moodUser.getRecordedDate())
                                     .build());
-                        })
-                );
+                        }));
     }
-
 
     @Transactional
     @Override
@@ -103,7 +100,8 @@ public class MoodUserServiceImpl implements MoodUserService {
         log.info("Registrando estado de ánimo para usuario: {}", userId);
 
         MoodEntity mood = moodRepository.findById(moodUserRequestDto.moodId())
-                .orElseThrow(() -> new MoodEntityNotFoundException("Estado de ánimo no encontrado: " + moodUserRequestDto.moodId()));
+                .orElseThrow(() -> new MoodEntityNotFoundException(
+                        "Estado de ánimo no encontrado: " + moodUserRequestDto.moodId()));
 
         if (!mood.getIsActive()) {
             throw new IllegalArgumentException("Este estado de ánimo no está disponible para selección");
@@ -136,8 +134,7 @@ public class MoodUserServiceImpl implements MoodUserService {
                 userInfo.setFirstName("Usuario");
                 userInfo.setLastName(userId.substring(0, 8));
             }
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             log.warn("Error al obtener información del usuario. Usando información básica. Error: {}", e.getMessage());
             userInfo.setUsername("Usuario " + userId.substring(0, 8));
             userInfo.setFirstName("Usuario");
@@ -151,7 +148,6 @@ public class MoodUserServiceImpl implements MoodUserService {
                 .recordedDate(savedMoodUser.getRecordedDate())
                 .build();
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -179,8 +175,7 @@ public class MoodUserServiceImpl implements MoodUserService {
                     userDTO.setId(userId);
                     log.warn("No se pudo obtener información completa del usuario: {}", userId);
                 }
-            } catch (
-                    Exception e) {
+            } catch (Exception e) {
                 userDTO = new UserDTO();
                 userDTO.setId(userId);
                 log.warn("Error al obtener información del usuario {}: {}", userId, e.getMessage());
@@ -217,8 +212,7 @@ public class MoodUserServiceImpl implements MoodUserService {
             Map<Long, Long> moodCountById = moodUsers.stream()
                     .collect(Collectors.groupingBy(
                             mu -> mu.getMood().getId(),
-                            Collectors.counting()
-                    ));
+                            Collectors.counting()));
             long totalMoods = moodUsers.size();
             Map<String, Long> moodCounts = new HashMap<>();
             Map<String, Double> moodPercentages = new HashMap<>();
@@ -262,18 +256,18 @@ public class MoodUserServiceImpl implements MoodUserService {
             for (MoodEntity mood : allMoods) {
                 int value = switch (mood.getName().toLowerCase()) {
                     case "happy" ->
-                            5;
+                        5;
                     case "energetic" ->
-                            4;
+                        4;
                     case "neutral" ->
-                            3;
+                        3;
                     case "anxious" ->
-                            2;
+                        2;
                     case "triste",
-                         "sad" ->
-                            1;
+                            "sad" ->
+                        1;
                     default ->
-                            3;
+                        3;
                 };
                 moodValues.put(mood.getId(), value);
             }
@@ -282,8 +276,7 @@ public class MoodUserServiceImpl implements MoodUserService {
             Map<Long, Long> moodCountById = moodUsers.stream()
                     .collect(Collectors.groupingBy(
                             mu -> mu.getMood().getId(),
-                            Collectors.counting()
-                    ));
+                            Collectors.counting()));
 
             Map.Entry<Long, Long> mostCommonEntry = moodCountById.entrySet().stream()
                     .max(Map.Entry.comparingByValue())
@@ -379,6 +372,27 @@ public class MoodUserServiceImpl implements MoodUserService {
                     .weeklyTrendScore(weeklyTrend)
                     .build();
         }).subscribeOn(Schedulers.boundedElastic());
+    }
+
+    @Override
+    public Long countMoods() {
+        log.info("Contando total de registros de estados de ánimo");
+        return (long) moodUserRepository.findAll().size();
+    }
+
+    @Override
+    public Long countMoodsPreviousMonth() {
+        log.info("Contando registros de estados de ánimo del mes anterior");
+        LocalDateTime startOfPreviousMonth = LocalDateTime.now().minusMonths(1).withDayOfMonth(1).withHour(0)
+                .withMinute(0).withSecond(0);
+        LocalDateTime endOfPreviousMonth = startOfPreviousMonth.plusMonths(1).minusSeconds(1);
+
+        return moodUserRepository.findAll().stream()
+                .filter(mood -> {
+                    LocalDateTime date = mood.getRecordedDate();
+                    return date.isAfter(startOfPreviousMonth) && date.isBefore(endOfPreviousMonth);
+                })
+                .count();
     }
 
 }

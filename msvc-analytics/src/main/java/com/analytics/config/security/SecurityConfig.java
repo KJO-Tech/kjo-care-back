@@ -30,8 +30,10 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**", "/",
+                                "/webjars/**",
+                                 "/",
                                 "/analytics/test"
+                                // "/analytics/dashboard-stats"
                         ).permitAll()
                         .anyExchange().authenticated()
                 )
