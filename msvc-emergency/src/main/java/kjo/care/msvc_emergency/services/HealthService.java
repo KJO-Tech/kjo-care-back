@@ -14,4 +14,7 @@ public interface HealthService {
     HealthResponseDto save(HealthRequestDto dto, String userId);
     HealthResponseDto update (Long id , HealthRequestDto dto, String userId);
     void delete(Long id,  String userId);
+    int countTotalHealthCenters();
+    int countActiveHealthCenters();
+    int countPreviousMonthHealthCenters();
 }

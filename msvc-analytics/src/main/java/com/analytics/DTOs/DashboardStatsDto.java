@@ -8,6 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 public class DashboardStatsDto {
     private MetricData totalUsers;
-    // private MetricData blogPosts;
+     private MetricData blogPosts;
     private MetricData moodEntries;
+    private MetricData healthCenters;
 }
