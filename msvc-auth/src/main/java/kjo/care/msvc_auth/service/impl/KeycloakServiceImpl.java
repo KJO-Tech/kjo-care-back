@@ -22,7 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -147,7 +149,6 @@ public class KeycloakServiceImpl implements IKeycloakService {
 
     @Override
     public void updateUser(String userId, UserRequestDto userDTO) {
-
         List<UserRepresentation> existingUsers = keycloakProvider.getRealmResource()
                 .users()
                 .search(userDTO.getUsername(), true);
@@ -156,18 +157,45 @@ public class KeycloakServiceImpl implements IKeycloakService {
             throw new BadRequestException("El username ya está en uso");
         }
 
-        UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setId(userId);
-        userRepresentation.setFirstName(userDTO.getFirstName());
-        userRepresentation.setLastName(userDTO.getLastName());
-        userRepresentation.setEmail(userDTO.getEmail());
-        userRepresentation.setUsername(userDTO.getUsername());
-        userRepresentation.setEmailVerified(true);
-        userRepresentation.setEnabled(true);
-
         UserResource userResource = keycloakProvider.getUserResource().get(userId);
         UserRepresentation userRep = userResource.toRepresentation();
+
         userRep.setUsername(userDTO.getUsername());
+        userRep.setEmail(userDTO.getEmail());
+        userRep.setFirstName(userDTO.getFirstName());
+        userRep.setLastName(userDTO.getLastName());
+        userRep.setEmailVerified(true);
+
         userResource.update(userRep);
+
+        if (userDTO.getRoles() != null) {
+            RealmResource realmResource = keycloakProvider.getRealmResource();
+
+            List<RoleRepresentation> allRoles = realmResource.roles().list();
+
+            List<RoleRepresentation> currentRoles = userResource.roles().realmLevel().listAll();
+
+            Set<String> targetRoles = new HashSet<>(userDTO.getRoles());
+            Set<String> currentRoleNames = currentRoles.stream()
+                    .map(RoleRepresentation::getName)
+                    .collect(Collectors.toSet());
+
+            List<RoleRepresentation> rolesToRemove = allRoles.stream()
+                    .filter(role -> currentRoleNames.contains(role.getName())
+                            && !targetRoles.contains(role.getName()))
+                    .collect(Collectors.toList());
+
+            List<RoleRepresentation> rolesToAdd = allRoles.stream()
+                    .filter(role -> targetRoles.contains(role.getName())
+                            && !currentRoleNames.contains(role.getName()))
+                    .collect(Collectors.toList());
+
+            if (!rolesToRemove.isEmpty()) {
+                userResource.roles().realmLevel().remove(rolesToRemove);
+            }
+            if (!rolesToAdd.isEmpty()) {
+                userResource.roles().realmLevel().add(rolesToAdd);
+            }
+        }
     }
 }
