@@ -71,6 +71,9 @@ public class CommentMapper {
                 .toList();
 
         return CommentSummaryDto.builder()
+                .id(comment.getId())
+                .commentDate(comment.getCommentDate())
+                .modifiedDate(comment.getModifiedDate())
                 .userId(userInfo)
                 .content(comment.getContent())
                 .date(comment.getCommentDate())
