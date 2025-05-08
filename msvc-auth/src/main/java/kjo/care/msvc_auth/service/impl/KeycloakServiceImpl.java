@@ -21,10 +21,7 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -73,16 +70,30 @@ public class KeycloakServiceImpl implements IKeycloakService {
 
     @Override
     public UserInfoDto findUserById(String userId) {
-        UserResource userResource = keycloakProvider.getRealmResource()
-                .users()
-                .get(userId);
+        try {
+            UserResource userResource = keycloakProvider.getRealmResource()
+                    .users()
+                    .get(userId);
 
-        return UserInfoDto.builder()
-                .id(userResource.toRepresentation().getId())
-                .username(userResource.toRepresentation().getUsername())
-                .firstName(userResource.toRepresentation().getFirstName())
-                .lastName(userResource.toRepresentation().getLastName())
-                .build();
+            return UserInfoDto.builder()
+                    .id(userResource.toRepresentation().getId())
+                    .username(userResource.toRepresentation().getUsername())
+                    .firstName(userResource.toRepresentation().getFirstName())
+                    .lastName(userResource.toRepresentation().getLastName())
+                    .build();
+
+        } catch (Exception e) {
+            log.warn("No se pudo obtener el usuario con ID: {}", userId, e);
+            return null;
+        }
+    }
+
+    @Override
+    public List<UserInfoDto> findUsersByIds(List<String> userIds) {
+        return userIds.stream()
+                .map(this::findUserById)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     @Override
@@ -198,4 +209,5 @@ public class KeycloakServiceImpl implements IKeycloakService {
             }
         }
     }
+
 }

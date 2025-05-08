@@ -30,8 +30,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -51,30 +54,25 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional(readOnly = true)
     public List<BlogOverviewDto> findAllBlogs() {
-        List<Blog> blogs = blogRepository.findAll();
-        List<BlogOverviewDto> blogOverviews = blogs.stream()
-                .map(blogMapper::entityToDto)
-                .map(this::findBlogOverview)
-                .toList();
-        return blogOverviews;
+        List<Blog> blogs = blogRepository.findAllWithCategory();
+        return processBlogsAndBuildOverviews(blogs);
     }
 
     @Override
     public List<BlogResponseDto> findAllBlogsPublished() {
-        return blogRepository.findAll().stream().filter(blog -> blog.getState().equals(BlogState.PUBLICADO)).map(blogMapper::entityToDto).toList();
+        List<Blog> publishedBlogs = blogRepository.findByStateWithCategory(BlogState.PUBLICADO);
+        List<UserInfoDto> users = fetchUsersForBlogs(publishedBlogs);
+        return blogMapper.entitiesToDtos(publishedBlogs, users);
     }
 
     @Override
     @Transactional(readOnly = true)
     public BlogPageResponseDto findBlogs(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("publishedDate").descending());
+        Page<Blog> publishedBlogsPage = blogRepository.findByStateWithCategory(BlogState.PUBLICADO, pageable);
+        List<Blog> publishedBlogs = publishedBlogsPage.getContent();
 
-        Page<Blog> publishedBlogsPage = blogRepository.findByState(BlogState.PUBLICADO, pageable);
-
-        List<BlogOverviewDto> blogOverviews = publishedBlogsPage.getContent().stream()
-                .map(blogMapper::entityToDto)
-                .map(this::findBlogOverview)
-                .toList();
+        List<BlogOverviewDto> blogOverviews = processBlogsAndBuildOverviews(publishedBlogs);
 
         return new BlogPageResponseDto(
                 blogOverviews,
@@ -88,8 +86,12 @@ public class BlogServiceImpl implements BlogService {
     @Cacheable(value = "blogs", key = "#id")
     public BlogResponseDto findBlogById(Long id) {
         Blog blog = findExistBlog(id);
-        BlogResponseDto response = blogMapper.entityToDto(blog);
-        return response;
+        List<Blog> singleBlogList = List.of(blog);
+        List<UserInfoDto> users = fetchUsersForBlogs(singleBlogList);
+        Map<String, UserInfoDto> usersMap = users.stream()
+                .collect(Collectors.toMap(UserInfoDto::getId, Function.identity()));
+
+        return blogMapper.entityToDto(blog, usersMap);
     }
 
     @Override
@@ -97,7 +99,13 @@ public class BlogServiceImpl implements BlogService {
     @Cacheable(value = "blogs", key = "#id")
     public BlogDetailsDto findBlogDetails(Long id) {
         Blog blog = findExistBlog(id);
-        BlogResponseDto blogResponseDto = blogMapper.entityToDto(blog);
+
+        List<Blog> singleBlogList = List.of(blog);
+        List<UserInfoDto> users = fetchUsersForBlogs(singleBlogList);
+        Map<String, UserInfoDto> usersMap = users.stream()
+                .collect(Collectors.toMap(UserInfoDto::getId, Function.identity()));
+
+        BlogResponseDto blogResponseDto = blogMapper.entityToDto(blog, usersMap);
 
         boolean isAdmin = isAdminFromJwt();
         boolean isPublished = BlogState.PUBLICADO.equals(blog.getState());
@@ -127,6 +135,9 @@ public class BlogServiceImpl implements BlogService {
     @Transactional
     public BlogResponseDto saveBlog(BlogRequestDto dto, String userId) {
         UserInfoDto user = userClient.findUserById(userId);
+        Map<String, UserInfoDto> userMap = new HashMap<>();
+        userMap.put(userId, user);
+
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
 
@@ -136,7 +147,7 @@ public class BlogServiceImpl implements BlogService {
         blog.setCategory(category);
         blog.setUserId(userId);
         blogRepository.save(blog);
-        return blogMapper.entityToDto(blog);
+        return blogMapper.entityToDto(blog, userMap);
     }
 
     @Override
@@ -153,12 +164,16 @@ public class BlogServiceImpl implements BlogService {
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
 
+        UserInfoDto user = userClient.findUserById(authenticatedUserId);
+        Map<String, UserInfoDto> userMap = new HashMap<>();
+        userMap.put(authenticatedUserId, user);
+
         blogMapper.updateEntityFromDto(dto, blog);
         blog.setCategory(category);
         deleteImageOrVideo(blog);
         saveImageOrVideo(dto, blog);
         blogRepository.save(blog);
-        return blogMapper.entityToDto(blog);
+        return blogMapper.entityToDto(blog, userMap);
     }
 
     @Override
@@ -175,7 +190,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     private Blog findExistBlog(Long id) {
-        return blogRepository.findById(id).orElseThrow(() -> {
+        return blogRepository.findByIdWithCategory(id).orElseThrow(() -> {
             return new EntityNotFoundException("Blog con id :" + id + " no encontrado");
         });
     }
@@ -227,17 +242,51 @@ public class BlogServiceImpl implements BlogService {
         }
     }
 
-    private BlogOverviewDto findBlogOverview(BlogResponseDto blog) {
-        Long blogId = blog.getId();
+    private List<BlogOverviewDto> processBlogsAndBuildOverviews(List<Blog> blogs) {
+        List<Long> blogIds = blogs.stream().map(Blog::getId).toList();
+        Map<Long, Long> reactionCounts = getReactionCounts(blogIds);
+        Map<Long, Long> commentCounts = getCommentCounts(blogIds);
 
-        Long reactionCount = reactionRepository.countByBlogId(blogId);
-        Long commentCount = commentRepository.countByBlogId(blogId);
+        List<BlogResponseDto> blogDtos = blogMapper.entitiesToDtos(blogs, fetchUsersForBlogs(blogs));
 
+        return blogDtos.stream()
+                .map(dto -> buildBlogOverview(dto, reactionCounts, commentCounts))
+                .toList();
+    }
+
+    private List<UserInfoDto> fetchUsersForBlogs(List<Blog> blogs) {
+        List<String> userIds = extractUserIds(blogs);
+        return userClient.findUsersByIds(userIds);
+    }
+
+    private List<String> extractUserIds(List<Blog> blogs) {
+        return blogs.stream()
+                .map(Blog::getUserId)
+                .distinct()
+                .toList();
+    }
+
+    private BlogOverviewDto buildBlogOverview(BlogResponseDto dto, Map<Long, Long> reactionCounts, Map<Long, Long> commentCounts) {
         return BlogOverviewDto.builder()
-                .blog(blog)
-                .reactionCount(reactionCount)
-                .commentCount(commentCount)
+                .blog(dto)
+                .reactionCount(reactionCounts.getOrDefault(dto.getId(), 0L))
+                .commentCount(commentCounts.getOrDefault(dto.getId(), 0L))
                 .build();
     }
 
+    private Map<Long, Long> getReactionCounts(List<Long> blogIds) {
+        return reactionRepository.countByBlogIds(blogIds).stream()
+                .collect(Collectors.toMap(
+                        arr -> (Long) arr[0],
+                        arr -> (Long) arr[1]
+                ));
+    }
+
+    private Map<Long, Long> getCommentCounts(List<Long> blogIds) {
+        return commentRepository.countByBlogIds(blogIds).stream()
+                .collect(Collectors.toMap(
+                        arr -> (Long) arr[0],
+                        arr -> (Long) arr[1]
+                ));
+    }
 }

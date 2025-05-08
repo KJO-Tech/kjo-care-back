@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -51,6 +52,11 @@ public class AuthController {
     @GetMapping("/{userId}")
     public ResponseEntity<?> findUserById(@PathVariable String userId) {
         return ResponseEntity.ok(keycloakService.findUserById(userId));
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<?> findUsersByIds(@RequestBody List<String> userId) {
+        return ResponseEntity.ok(keycloakService.findUsersByIds(userId));
     }
 
     @PostMapping("/register")
