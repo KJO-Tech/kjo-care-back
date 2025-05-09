@@ -8,10 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
-import kjo.care.msvc_emergency.dto.EmergencyRequestDto;
-import kjo.care.msvc_emergency.dto.EmergencyResponseDto;
-import kjo.care.msvc_emergency.dto.HealthRequestDto;
-import kjo.care.msvc_emergency.dto.HealthResponseDto;
+import kjo.care.msvc_emergency.dto.*;
 import kjo.care.msvc_emergency.services.HealthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -83,7 +80,7 @@ public class HealthController {
     public ResponseEntity<?> update(@PathVariable @Positive(message = "El ID debe ser positivo") Long id, @ModelAttribute @Validated HealthRequestDto healthCenter
             , @AuthenticationPrincipal Jwt jwt) {
         String authenticatedUserId = jwt.getSubject();
-        HealthResponseDto updated = healthService.update(id, healthCenter,authenticatedUserId);
+        HealthResponseDto updated = healthService.update(id, healthCenter, authenticatedUserId);
         return ResponseEntity.ok(updated);
     }
 
@@ -91,9 +88,42 @@ public class HealthController {
     @ApiResponse(responseCode = "204", description = "Centro de Salud eliminado correctamente")
     @ApiResponse(responseCode = "404", description = "No se encontró el Centro de Salud")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable @Positive(message = "El ID debe ser positivo") Long id,  @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> delete(@PathVariable @Positive(message = "El ID debe ser positivo") Long id, @AuthenticationPrincipal Jwt jwt) {
         String authenticatedUserId = jwt.getSubject();
         healthService.delete(id, authenticatedUserId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Obtener cantidad total de centros de salud",
+            description = "Devuelve el número total de centros de salud registrados")
+    @ApiResponse(responseCode = "200", description = "Conteo obtenido correctamente")
+    @GetMapping("/health-centers/count")
+    public ResponseEntity<HealthCenterCountDto> getTotalHealthCenters() {
+        log.info("Petición para obtener cantidad total de centros de salud");
+        int count = healthService.countTotalHealthCenters();
+        log.info("Total de centros de salud: {}", count);
+        return ResponseEntity.ok(new HealthCenterCountDto(count));
+    }
+
+    @Operation(summary = "Obtener cantidad de centros de salud activos",
+            description = "Devuelve el número total de centros de salud activos")
+    @ApiResponse(responseCode = "200", description = "Conteo obtenido correctamente")
+    @GetMapping("/health-centers/count/active")
+    public ResponseEntity<HealthCenterCountDto> getActiveHealthCenters() {
+        log.info("Petición para obtener cantidad de centros de salud activos");
+        int count = healthService.countActiveHealthCenters();
+        log.info("Total de centros de salud activos: {}", count);
+        return ResponseEntity.ok(new HealthCenterCountDto(count));
+    }
+
+    @Operation(summary = "Obtener cantidad de centros de salud del mes anterior",
+            description = "Devuelve el número de centros de salud registrados en el mes anterior")
+    @ApiResponse(responseCode = "200", description = "Conteo del mes anterior obtenido correctamente")
+    @GetMapping("/health-centers/count/previous-month")
+    public ResponseEntity<HealthCenterCountDto> getPreviousMonthHealthCenters() {
+        log.info("Petición para obtener cantidad de centros de salud del mes anterior");
+        int count = healthService.countPreviousMonthHealthCenters();
+        log.info("Total de centros de salud del mes anterior: {}", count);
+        return ResponseEntity.ok(new HealthCenterCountDto(count));
     }
 }

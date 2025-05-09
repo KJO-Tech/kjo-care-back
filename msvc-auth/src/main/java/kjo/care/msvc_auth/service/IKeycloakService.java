@@ -10,10 +10,20 @@ import java.util.List;
 
 public interface IKeycloakService {
     List<UserRepresentation> findAllUser();
+
     List<UserResponseDto> findAllUsersRoles();
+
     List<UserRepresentation> findAllUserByUsername(String username);
+
     UserInfoDto findUserById(String userId);
+
     String createUser(UserDTO userDTO);
+
+    Long countUsers();
+    Long countUsersByPeriod(int month);
+    Long countUsersPreviousMonth();
+
     void deleteUser(String userId);
+
     void updateUser(String userId, UserRequestDto userUpdate);
 }

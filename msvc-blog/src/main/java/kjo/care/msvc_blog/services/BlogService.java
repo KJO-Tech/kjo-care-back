@@ -13,4 +13,6 @@ public interface BlogService {
     BlogResponseDto saveBlog(BlogRequestDto dto, String userId);
     BlogResponseDto updateBlog (Long id , BlogRequestDto dto, String authenticatedUserId);
     void deleteBlog(Long id,  String authenticatedUserId);
+    Long countBlogs();
+    Long countBlogsPreviousMonth();
 }

@@ -51,3 +51,9 @@ spring:
             - Path=/api/mind/blog/**
           filters:
             - StripPrefix=3
+        - id: msvc-analytics
+          uri: lb://msvc-analytics
+          predicates:
+            - Path=/api/mind/analytics/**
+          filters:
+            - StripPrefix=3
