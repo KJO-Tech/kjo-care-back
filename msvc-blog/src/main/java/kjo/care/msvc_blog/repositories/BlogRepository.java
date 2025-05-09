@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Date;
 
+import java.util.List;
+
+
 @Repository
 public interface BlogRepository extends JpaRepository<Blog, Long> {
     Page<Blog> findByState(BlogState state, Pageable pageable);
@@ -20,6 +23,15 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
     Long countByState(BlogState state);
 
     Long countByStateAndPublishedDateBetween(BlogState state, Date startDate, Date endDate);
+
+
+    @Query(value = "SELECT DATE(published_date) as fecha, COUNT(*) as cantidad FROM blog " +
+            "WHERE state = :state AND published_date BETWEEN :startDate AND :endDate " +
+            "GROUP BY DATE(published_date) " +
+            "ORDER BY fecha", nativeQuery = true)
+    List<Object[]> countBlogsByDayBetweenDates(@Param("state") String state, @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate);
+
 
     @Query("SELECT b FROM Blog b LEFT JOIN FETCH b.category")
     List<Blog> findAllWithCategory();
@@ -33,3 +45,4 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
     @Query("SELECT b FROM Blog b LEFT JOIN FETCH b.category WHERE b.id = :id")
     Optional<Blog> findByIdWithCategory(@Param("id") Long id);
 }
+
