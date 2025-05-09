@@ -16,6 +16,10 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -48,10 +52,9 @@ public class BlogMapper {
 
     }
 
-    public BlogResponseDto entityToDto(Blog entity) {
-        UserInfoDto author = userClient.findUserById(entity.getUserId());
+    public BlogResponseDto entityToDto(Blog entity, Map<String, UserInfoDto> usersMap) {
         BlogResponseDto dto = modelMapper.map(entity, BlogResponseDto.class);
-        dto.setAuthor(author);
+        dto.setAuthor(usersMap.get(entity.getUserId()));
         dto.setCategory(modelMapper.map(entity.getCategory(), CategoryResponseDto.class));
         return dto;
     }
@@ -70,6 +73,15 @@ public class BlogMapper {
                 });
         modelMapper.map(dto, entity);
         entity.setModifiedDate(LocalDate.now());
+    }
+
+    public List<BlogResponseDto> entitiesToDtos(List<Blog> entities, List<UserInfoDto> users) {
+        Map<String, UserInfoDto> usersMap = users.stream()
+                .collect(Collectors.toMap(UserInfoDto::getId, Function.identity()));
+
+        return entities.stream()
+                .map(entity -> entityToDto(entity, usersMap))
+                .toList();
     }
 
 }

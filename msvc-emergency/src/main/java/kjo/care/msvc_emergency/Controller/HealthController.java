@@ -47,7 +47,6 @@ public class HealthController {
     @Operation(summary = "Obtener todos los Centros de Salud", description = "Devuelve todos los centros de salud activos")
     @ApiResponse(responseCode = "200", description = "Centros de Salud obtenidos correctamente")
     @ApiResponse(responseCode = "204", description = "No se encontraron los Centros de Salud")
-    @PreAuthorize("hasRole('admin_client_role')")
     @GetMapping
     public ResponseEntity<?> findAllActive() {
         List<HealthResponseDto> response = healthService.findAllActive();

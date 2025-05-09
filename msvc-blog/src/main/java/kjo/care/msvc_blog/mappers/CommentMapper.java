@@ -3,6 +3,7 @@ package kjo.care.msvc_blog.mappers;
 import jakarta.annotation.PostConstruct;
 import kjo.care.msvc_blog.client.UserClient;
 import kjo.care.msvc_blog.dto.*;
+import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Comment;
 import kjo.care.msvc_blog.repositories.CommentRepository;
 import lombok.RequiredArgsConstructor;
@@ -71,10 +72,33 @@ public class CommentMapper {
                 .toList();
 
         return CommentSummaryDto.builder()
+                .id(comment.getId())
+                .commentDate(comment.getCommentDate())
+                .modifiedDate(comment.getModifiedDate())
                 .userId(userInfo)
                 .content(comment.getContent())
                 .date(comment.getCommentDate())
                 .childrenComments(mappedReplies)
                 .build();
+    }
+
+    public List<CommentResponseDto> entitiesToDtos(List<Comment> entities) {
+        List<String> userIds = entities.stream()
+                .map(Comment::getUserId)
+                .distinct()
+                .toList();
+
+        List<UserInfoDto> users = userClient.findUsersByIds(userIds);
+
+        return entities.stream()
+                .map(entity -> {
+                    CommentResponseDto dto = modelMapper.map(entity, CommentResponseDto.class);
+                    users.stream()
+                            .filter(user -> user.getId().equals(entity.getUserId()))
+                            .findFirst()
+                            .ifPresent(dto::setUserId);
+                    return dto;
+                })
+                .toList();
     }
 }

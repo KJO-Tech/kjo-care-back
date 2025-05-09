@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -55,9 +57,17 @@ public class AuthController {
         return ResponseEntity.ok(keycloakService.findUserById(userId));
     }
 
+    @PostMapping("/batch")
+    public ResponseEntity<?> findUsersByIds(@RequestBody List<String> userId) {
+        return ResponseEntity.ok(keycloakService.findUsersByIds(userId));
+    }
+
     @PostMapping("/register")
     public ResponseEntity<?> createUser(@RequestBody UserDTO userDTO) throws URISyntaxException {
-        String response = keycloakService.createUser(userDTO);
+        String message = keycloakService.createUser(userDTO);
+
+        var response = new HashMap<String, String>();
+        response.put("message", message);
         return ResponseEntity.created(new URI("/keycloak/user/register")).body(response);
     }
 
@@ -65,7 +75,10 @@ public class AuthController {
     @PreAuthorize("hasRole('user_client_role') or hasRole('admin_client_role')")
     public ResponseEntity<?> updateUser(@PathVariable String userId, @RequestBody UserRequestDto userDTO) {
         keycloakService.updateUser(userId, userDTO);
-        return ResponseEntity.ok("User updated successfully");
+
+        var response = new HashMap<String, String>();
+        response.put("message", "User updated successfully");
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/delete/{userId}")
