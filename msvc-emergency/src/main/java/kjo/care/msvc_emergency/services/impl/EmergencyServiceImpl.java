@@ -123,6 +123,7 @@ public class EmergencyServiceImpl implements EmergencyService {
         emergencyRepository.save(emergencyResource);
     }
 
+
     private EmergencyResource findExistEmergencyResource(Long id) {
         return emergencyRepository.findById(id).orElseThrow(() -> {
             return new EntityNotFoundException("Recurso de emergencia con id :" + id + " no encontrado");

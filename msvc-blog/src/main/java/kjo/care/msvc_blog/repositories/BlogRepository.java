@@ -11,9 +11,16 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Date;
 
 @Repository
 public interface BlogRepository extends JpaRepository<Blog, Long> {
+    Page<Blog> findByState(BlogState state, Pageable pageable);
+
+    Long countByState(BlogState state);
+
+    Long countByStateAndPublishedDateBetween(BlogState state, Date startDate, Date endDate);
+
     @Query("SELECT b FROM Blog b LEFT JOIN FETCH b.category")
     List<Blog> findAllWithCategory();
 

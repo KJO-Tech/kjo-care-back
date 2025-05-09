@@ -30,6 +30,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -177,7 +180,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void deleteBlog(Long id,  String authenticatedUserId) {
+    public void deleteBlog(Long id, String authenticatedUserId) {
         Blog blog = findExistBlog(id);
         boolean isAdmin = isAdminFromJwt();
 
@@ -187,6 +190,24 @@ public class BlogServiceImpl implements BlogService {
 
         blog.setState(BlogState.ELIMINADO);
         blogRepository.save(blog);
+    }
+
+    @Override
+    public Long countBlogs() {
+        log.info("Contando total de blogs publicados");
+        return blogRepository.countByState(BlogState.PUBLICADO);
+    }
+
+    @Override
+    public Long countBlogsPreviousMonth() {
+        log.info("Contando blogs publicados en el mes anterior");
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfPreviousMonth = now.minusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime endOfPreviousMonth = startOfPreviousMonth.plusMonths(1).minusSeconds(1);
+        Date startDate = java.util.Date.from(startOfPreviousMonth.atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = java.util.Date.from(endOfPreviousMonth.atZone(ZoneId.systemDefault()).toInstant());
+
+        return blogRepository.countByStateAndPublishedDateBetween(BlogState.PUBLICADO, startDate, endDate);
     }
 
     private Blog findExistBlog(Long id) {

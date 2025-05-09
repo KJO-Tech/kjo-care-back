@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -98,6 +99,26 @@ public class HealthServiceImpl implements HealthService {
         }
         healthCenter.setStatus(StatusHealth.INACTIVE);
         healthRepository.save(healthCenter);
+    }
+
+    @Override
+    public int countTotalHealthCenters() {
+        return (int) healthRepository.count();
+    }
+
+    @Override
+    public int countActiveHealthCenters() {
+        return (int) healthRepository.countByStatus(StatusHealth.ACTIVE);
+    }
+
+    @Override
+    public int countPreviousMonthHealthCenters() {
+        // Definimos el inicio y fin del mes anterior
+        LocalDate now = LocalDate.now();
+        LocalDate startOfPreviousMonth = now.minusMonths(1).withDayOfMonth(1);
+        LocalDate endOfPreviousMonth = startOfPreviousMonth.plusMonths(1).minusDays(1);
+
+        return healthRepository.countByCreatedDateBetween(startOfPreviousMonth, endOfPreviousMonth);
     }
 
     private HealthCenter findHealthCenter(Long id) {

@@ -56,7 +56,7 @@ public class KeycloakServiceImpl implements IKeycloakService {
                     .map(RoleRepresentation::getName)
                     .collect(Collectors.toList());
 
-            usersWithRoles.add(new UserResponseDto(user.getId(),user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), user.isEnabled(), user.getCreatedTimestamp(), roles));
+            usersWithRoles.add(new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), user.isEnabled(), user.getCreatedTimestamp(), roles));
         }
         return usersWithRoles;
     }
@@ -113,7 +113,7 @@ public class KeycloakServiceImpl implements IKeycloakService {
         Response response = usersResource.create(userRepresentation);
         status = response.getStatus();
 
-        if(status == 201){
+        if (status == 201) {
             String path = response.getLocation().getPath();
             String userId = path.substring(path.lastIndexOf("/") + 1);
 
@@ -127,7 +127,7 @@ public class KeycloakServiceImpl implements IKeycloakService {
             RealmResource realmResource = keycloakProvider.getRealmResource();
             List<RoleRepresentation> rolesRepresentation = null;
 
-            if(userDTO.getRoles() == null || userDTO.getRoles().isEmpty()){
+            if (userDTO.getRoles() == null || userDTO.getRoles().isEmpty()) {
                 rolesRepresentation = List.of(realmResource.roles().get("user").toRepresentation());
             } else {
                 rolesRepresentation = realmResource.roles()
@@ -149,6 +149,62 @@ public class KeycloakServiceImpl implements IKeycloakService {
             log.error("Error creating user");
             return "Error creating user";
         }
+    }
+
+    @Override
+    public Long countUsers() {
+        log.info("Contando total de usuarios registrados");
+        List<UserRepresentation> users = keycloakProvider.getRealmResource()
+                .users()
+                .list();
+        return (long) users.size();
+    }
+
+    @Override
+    public Long countUsersByPeriod(int months) {
+        log.info("Contando usuarios registrados en los últimos {} meses", months);
+        List<UserRepresentation> allUsers = keycloakProvider.getRealmResource()
+                .users()
+                .list();
+
+        long startTime = System.currentTimeMillis() - (long) months * 30 * 24 * 60 * 60 * 1000;
+
+        return allUsers.stream()
+                .filter(user -> {
+                    Long createdTimestamp = user.getCreatedTimestamp();
+                    return createdTimestamp != null && createdTimestamp >= startTime;
+                })
+                .count();
+    }
+
+    @Override
+    public Long countUsersPreviousMonth() {
+        log.info("Contando usuarios registrados en el mes anterior");
+        List<UserRepresentation> allUsers = keycloakProvider.getRealmResource()
+                .users()
+                .list();
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, -1);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        long startOfPreviousMonth = cal.getTimeInMillis();
+
+        cal.add(Calendar.MONTH, 1);
+        cal.add(Calendar.MILLISECOND, -1);
+        long endOfPreviousMonth = cal.getTimeInMillis();
+
+        return allUsers.stream()
+                .filter(user -> {
+                    Long createdTimestamp = user.getCreatedTimestamp();
+                    return createdTimestamp != null &&
+                            createdTimestamp >= startOfPreviousMonth &&
+                            createdTimestamp <= endOfPreviousMonth;
+                })
+                .count();
     }
 
     @Override

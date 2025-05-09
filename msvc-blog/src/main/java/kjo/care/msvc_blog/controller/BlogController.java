@@ -117,5 +117,25 @@ public class BlogController {
         blogService.deleteBlog(id, authenticatedUserId);
         return ResponseEntity.noContent().build();
     }
+    @Operation(summary = "Obtener cantidad total de blogs",
+            description = "Devuelve el número total de blogs publicados")
+    @ApiResponse(responseCode = "200", description = "Conteo obtenido correctamente")
+    @GetMapping("/count")
+    public ResponseEntity<BlogCountDto> getBlogCount() {
+        log.info("Petición para obtener cantidad total de blogs");
+        Long count = blogService.countBlogs();
+        log.info("Total de blogs: {}", count);
+        return ResponseEntity.ok(new BlogCountDto(count));
+    }
 
+    @Operation(summary = "Obtener cantidad de blogs del mes anterior",
+            description = "Devuelve el número de blogs publicados en el mes anterior")
+    @ApiResponse(responseCode = "200", description = "Conteo del mes anterior obtenido correctamente")
+    @GetMapping("/count/previous-month")
+    public ResponseEntity<BlogCountDto> getPreviousMonthBlogs() {
+        log.info("Petición para obtener cantidad de blogs del mes anterior");
+        Long count = blogService.countBlogsPreviousMonth();
+        log.info("Total de blogs del mes anterior: {}", count);
+        return ResponseEntity.ok(new BlogCountDto(count));
+    }
 }

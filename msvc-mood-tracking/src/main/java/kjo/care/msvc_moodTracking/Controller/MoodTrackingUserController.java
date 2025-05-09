@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodCountDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodStatisticsDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodTrendsAnalysisDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.MoodUserRequestDto;
@@ -107,5 +108,27 @@ public class MoodTrackingUserController {
         return moodUserService.getMoodTrendsAnalysis(months)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.noContent().build());
+    }
+
+    @Operation(summary = "Obtener cantidad total de registros de estados de ánimo",
+            description = "Devuelve el número total de registros de estado de ánimo")
+    @ApiResponse(responseCode = "200", description = "Conteo obtenido correctamente")
+    @GetMapping("/count")
+    public ResponseEntity<MoodCountDto> getMoodCount() {
+        log.info("Petición para obtener cantidad total de estados de ánimo");
+        Long count = moodUserService.countMoods();
+        log.info("Total de estados de ánimo: {}", count);
+        return ResponseEntity.ok(new MoodCountDto(count));
+    }
+
+    @Operation(summary = "Obtener cantidad de registros de estados de ánimo del mes anterior",
+            description = "Devuelve el número de registros de estado de ánimo del mes anterior")
+    @ApiResponse(responseCode = "200", description = "Conteo del mes anterior obtenido correctamente")
+    @GetMapping("/count/previous-month")
+    public ResponseEntity<MoodCountDto> getPreviousMonthMoods() {
+        log.info("Petición para obtener cantidad de estados de ánimo del mes anterior");
+        Long count = moodUserService.countMoodsPreviousMonth();
+        log.info("Total de estados de ánimo del mes anterior: {}", count);
+        return ResponseEntity.ok(new MoodCountDto(count));
     }
 }
