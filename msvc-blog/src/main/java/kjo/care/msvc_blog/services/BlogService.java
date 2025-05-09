@@ -2,6 +2,7 @@ package kjo.care.msvc_blog.services;
 
 import kjo.care.msvc_blog.dto.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface BlogService {
@@ -15,4 +16,6 @@ public interface BlogService {
     void deleteBlog(Long id,  String authenticatedUserId);
     Long countBlogs();
     Long countBlogsPreviousMonth();
+    List<Object[]> countBlogsByDayBetweenDates(String state, LocalDate startDate, LocalDate endDate);
+
 }

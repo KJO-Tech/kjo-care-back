@@ -17,9 +17,13 @@ public interface MoodUserService {
     List<UserMoodDTO> getAllUsersWithMoods();
 
     Mono<MoodStatisticsDto> getMoodStatistics(int months);
+
     Mono<MoodTrendsAnalysisDto> getMoodTrendsAnalysis(int months);
-    
+
     Long countMoods();
 
     Long countMoodsPreviousMonth();
+
+    List<Object[]> countUsersByDayInLastMonth();
+
 }

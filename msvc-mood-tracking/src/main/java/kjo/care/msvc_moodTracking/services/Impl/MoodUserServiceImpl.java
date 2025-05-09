@@ -381,6 +381,25 @@ public class MoodUserServiceImpl implements MoodUserService {
     }
 
     @Override
+    public List<Object[]> countUsersByDayInLastMonth() {
+        log.info("Contando usuarios que registraron su estado de ánimo por día en el último mes");
+
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusMonths(1);
+
+        log.debug("Consultando registros entre {} y {}", startDate, endDate);
+
+        try {
+            List<Object[]> results = moodUserRepository.countDistinctUsersByDayBetweenDates(startDate, endDate);
+            log.info("Encontrados registros para {} días diferentes", results.size());
+            return results;
+        } catch (Exception e) {
+            log.error("Error al contar usuarios por día: {}", e.getMessage(), e);
+            return List.of();
+        }
+    }
+
+    @Override
     public Long countMoodsPreviousMonth() {
         log.info("Contando registros de estados de ánimo del mes anterior");
         LocalDateTime startOfPreviousMonth = LocalDateTime.now().minusMonths(1).withDayOfMonth(1).withHour(0)

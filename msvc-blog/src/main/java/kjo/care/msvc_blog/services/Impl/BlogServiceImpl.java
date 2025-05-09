@@ -30,11 +30,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -64,7 +67,8 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public List<BlogResponseDto> findAllBlogsPublished() {
-        return blogRepository.findAll().stream().filter(blog -> blog.getState().equals(BlogState.PUBLICADO)).map(blogMapper::entityToDto).toList();
+        return blogRepository.findAll().stream().filter(blog -> blog.getState().equals(BlogState.PUBLICADO))
+                .map(blogMapper::entityToDto).toList();
     }
 
     @Override
@@ -82,8 +86,7 @@ public class BlogServiceImpl implements BlogService {
         return new BlogPageResponseDto(
                 blogOverviews,
                 page,
-                publishedBlogsPage.getTotalElements()
-        );
+                publishedBlogsPage.getTotalElements());
     }
 
     @Override
@@ -187,7 +190,8 @@ public class BlogServiceImpl implements BlogService {
     public Long countBlogsPreviousMonth() {
         log.info("Contando blogs publicados en el mes anterior");
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startOfPreviousMonth = now.minusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime startOfPreviousMonth = now.minusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0)
+                .withSecond(0);
         LocalDateTime endOfPreviousMonth = startOfPreviousMonth.plusMonths(1).minusSeconds(1);
         Date startDate = java.util.Date.from(startOfPreviousMonth.atZone(ZoneId.systemDefault()).toInstant());
         Date endDate = java.util.Date.from(endOfPreviousMonth.atZone(ZoneId.systemDefault()).toInstant());
@@ -199,6 +203,34 @@ public class BlogServiceImpl implements BlogService {
         return blogRepository.findById(id).orElseThrow(() -> {
             return new EntityNotFoundException("Blog con id :" + id + " no encontrado");
         });
+    }
+
+    @Override
+    public List<Object[]> countBlogsByDayBetweenDates(String state, LocalDate startDate, LocalDate endDate) {
+        log.info("Contando blogs por día entre fechas. State={}, startDate={}, endDate={}",
+                state, startDate, endDate);
+
+        try {
+            Date start = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date end = Date.from(endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).minusNanos(1).toInstant());
+
+            log.debug("Fechas convertidas: {} a {}", start, end);
+
+
+            if (!state.equals("PUBLICADO") && !state.equals("BORRADOR") && !state.equals("ELIMINADO")) {
+                log.warn("Estado de blog no válido: {}, usando PUBLICADO como predeterminado", state);
+                state = "PUBLICADO";
+            }
+
+            List<Object[]> results = blogRepository.countBlogsByDayBetweenDates(state, start, end);
+            log.debug("Resultados obtenidos: {} registros", results.size());
+
+            return results;
+        } catch (Exception e) {
+            log.error("Error en countBlogsByDayBetweenDates: {}", e.getMessage(), e);
+
+            return List.of();
+        }
     }
 
     private boolean isAdminFromJwt() {
@@ -221,16 +253,14 @@ public class BlogServiceImpl implements BlogService {
             String imageUrl = uploadService.uploadFile(
                     dto.getImage(),
                     "blog/images",
-                    "auto"
-            );
+                    "auto");
             blog.setImage(imageUrl);
         }
         if (dto.getVideo() != null && !dto.getVideo().isEmpty()) {
             String videoUrl = uploadService.uploadFile(
                     dto.getVideo(),
                     "blog/videos",
-                    "video"
-            );
+                    "video");
             blog.setVideo(videoUrl);
         }
     }
@@ -243,8 +273,7 @@ public class BlogServiceImpl implements BlogService {
             if (blog.getVideo() != null && blog.getVideo().startsWith("http")) {
                 uploadService.DeleteImage(blog.getVideo(), "video");
             }
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             log.error("Error al eliminar imagen/video: {}", e.getMessage());
         }
     }
