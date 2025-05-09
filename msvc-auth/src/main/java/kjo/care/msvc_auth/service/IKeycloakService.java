@@ -17,6 +17,8 @@ public interface IKeycloakService {
 
     UserInfoDto findUserById(String userId);
 
+    List<UserInfoDto> findUsersByIds(List<String> userIds);
+
     String createUser(UserDTO userDTO);
 
     Long countUsers();

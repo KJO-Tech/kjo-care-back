@@ -40,12 +40,16 @@ public class HealthServiceImpl implements HealthService {
 
     @Override
     public List<HealthResponseDto> findAll() {
-        return healthRepository.findAll().stream().map(healthMapper::entityToDto).toList();
+        List<HealthCenter> entities = healthRepository.findAll();
+        return healthMapper.entitiesToDtos(entities);
     }
 
     @Override
     public List<HealthResponseDto> findAllActive() {
-        return healthRepository.findAll().stream().filter(health -> health.getStatus().equals(StatusHealth.ACTIVE)).map(healthMapper::entityToDto).toList();
+        List<HealthCenter> activeEntities = healthRepository.findAll().stream()
+                .filter(health -> health.getStatus().equals(StatusHealth.ACTIVE))
+                .toList();
+        return healthMapper.entitiesToDtos(activeEntities);
     }
 
     @Override

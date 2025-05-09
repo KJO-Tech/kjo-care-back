@@ -7,7 +7,6 @@ import kjo.care.msvc_emergency.dto.StatsResponseDto;
 import kjo.care.msvc_emergency.dto.UserInfoDto;
 import kjo.care.msvc_emergency.entities.EmergencyResource;
 import kjo.care.msvc_emergency.enums.StatusEmergency;
-import kjo.care.msvc_emergency.enums.StatusHealth;
 import kjo.care.msvc_emergency.exceptions.EntityNotFoundException;
 import kjo.care.msvc_emergency.mappers.EmergencyMapper;
 import kjo.care.msvc_emergency.repositories.EmergencyRepository;
@@ -38,12 +37,16 @@ public class EmergencyServiceImpl implements EmergencyService {
 
     @Override
     public List<EmergencyResponseDto> findAll() {
-        return emergencyRepository.findAll().stream().map(emergencyMapper::entityToDto).toList();
+        List<EmergencyResource> entities = emergencyRepository.findAll();
+        return emergencyMapper.entitiesToDtos(entities);
     }
 
     @Override
     public List<EmergencyResponseDto> findAllActive() {
-        return emergencyRepository.findAll().stream().filter(emergency -> emergency.getStatus().equals(StatusEmergency.ACTIVE)).map(emergencyMapper::entityToDto).toList();
+        List<EmergencyResource> activeEntities = emergencyRepository.findAll().stream()
+                .filter(emergency -> emergency.getStatus().equals(StatusEmergency.ACTIVE))
+                .toList();
+        return emergencyMapper.entitiesToDtos(activeEntities);
     }
 
     @Override
