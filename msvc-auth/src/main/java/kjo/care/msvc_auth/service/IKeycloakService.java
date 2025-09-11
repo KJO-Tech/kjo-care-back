@@ -2,15 +2,30 @@ package kjo.care.msvc_auth.service;
 
 import kjo.care.msvc_auth.dto.UserDTO;
 import kjo.care.msvc_auth.dto.UserInfoDto;
+import kjo.care.msvc_auth.dto.UserRequestDto;
+import kjo.care.msvc_auth.dto.UserResponseDto;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
 
 public interface IKeycloakService {
     List<UserRepresentation> findAllUser();
+
+    List<UserResponseDto> findAllUsersRoles();
+
     List<UserRepresentation> findAllUserByUsername(String username);
+
     UserInfoDto findUserById(String userId);
+
+    List<UserInfoDto> findUsersByIds(List<String> userIds);
+
     String createUser(UserDTO userDTO);
+
+    Long countUsers();
+    Long countUsersByPeriod(int month);
+    Long countUsersPreviousMonth();
+
     void deleteUser(String userId);
-    void updateUser(String userId,UserDTO userDTO);
+
+    void updateUser(String userId, UserRequestDto userUpdate);
 }

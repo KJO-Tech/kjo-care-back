@@ -39,7 +39,8 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional(readOnly = true)
     public List<CommentResponseDto> findAllComments() {
-        return commentRepository.findAll().stream().map(commentMapper::entityToDto).toList();
+        List<Comment> comment = commentRepository.findAll();
+        return commentMapper.entitiesToDtos(comment);
     }
 
     @Override
