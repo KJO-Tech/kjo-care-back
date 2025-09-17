@@ -63,9 +63,9 @@ management:
   endpoint:
     health:
       show-details: always
-    prometheus:
-      access: unrestricted
-  prometheus:
-    metrics:
-      export:
-        enabled: true
+#    prometheus:
+#      access: unrestricted
+#  prometheus:
+#    metrics:
+#      export:
+#        enabled: true
