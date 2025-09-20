@@ -6,9 +6,10 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface MoodUserRepository extends JpaRepository<MoodUser, Long> {
+public interface MoodUserRepository extends JpaRepository<MoodUser, UUID> {
     List<MoodUser> findByUserId(String userId);
 
     List<MoodUser> findByRecordedDateAfter(LocalDateTime date);

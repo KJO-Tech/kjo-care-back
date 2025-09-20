@@ -1,11 +1,12 @@
 package kjo.care.msvc_moodTracking.Entities;
 
 import jakarta.persistence.*;
-import kjo.care.msvc_moodTracking.enums.MoodState;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @ToString(exclude = "moodUsers")
@@ -16,10 +17,13 @@ import java.util.List;
 @Table(name = "mood")
 public class MoodEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    private UUID id;
+
     @Column(name = "name")
     private String name;
+
     @Column(name = "description")
     private String description;
 //    @Enumerated(EnumType.STRING)

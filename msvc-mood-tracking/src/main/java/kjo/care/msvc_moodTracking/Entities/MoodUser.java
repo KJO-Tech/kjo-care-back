@@ -2,8 +2,10 @@ package kjo.care.msvc_moodTracking.Entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @ToString(exclude = "mood")
@@ -13,9 +15,12 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "mood_user")
 public class MoodUser {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    private UUID id;
+
     @Column(name = "user_id")
     private String userId;
     private LocalDateTime recordedDate;

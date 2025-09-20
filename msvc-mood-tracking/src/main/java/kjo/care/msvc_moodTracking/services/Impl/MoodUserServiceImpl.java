@@ -21,7 +21,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
@@ -214,7 +213,7 @@ public class MoodUserServiceImpl implements MoodUserService {
                 log.info("No se encontraron registros para el periodo especifico");
                 return null;
             }
-            Map<Long, Long> moodCountById = moodUsers.stream()
+            Map<UUID, Long> moodCountById = moodUsers.stream()
                     .collect(Collectors.groupingBy(
                             mu -> mu.getMood().getId(),
                             Collectors.counting()
@@ -256,7 +255,7 @@ public class MoodUserServiceImpl implements MoodUserService {
 
             moodUsers.sort(Comparator.comparing(MoodUser::getRecordedDate));
 
-            Map<Long, Integer> moodValues = new HashMap<>();
+            Map<UUID, Integer> moodValues = new HashMap<>();
             List<MoodEntity> allMoods = moodRepository.findAll();
 
             for (MoodEntity mood : allMoods) {
@@ -279,13 +278,13 @@ public class MoodUserServiceImpl implements MoodUserService {
             }
 
             // === CÁLCULO DEL ESTADO DE ÁNIMO MÁS COMÚN ===
-            Map<Long, Long> moodCountById = moodUsers.stream()
+            Map<UUID, Long> moodCountById = moodUsers.stream()
                     .collect(Collectors.groupingBy(
                             mu -> mu.getMood().getId(),
                             Collectors.counting()
                     ));
 
-            Map.Entry<Long, Long> mostCommonEntry = moodCountById.entrySet().stream()
+            Map.Entry<UUID, Long> mostCommonEntry = moodCountById.entrySet().stream()
                     .max(Map.Entry.comparingByValue())
                     .orElse(null);
 
@@ -294,7 +293,7 @@ public class MoodUserServiceImpl implements MoodUserService {
             long totalEntries = moodUsers.size();
 
             if (mostCommonEntry != null) {
-                Long moodId = mostCommonEntry.getKey();
+                UUID moodId = mostCommonEntry.getKey();
                 MoodEntity mood = moodRepository.findById(moodId).orElse(null);
                 if (mood != null) {
                     mostCommonMood = mood.getName();
