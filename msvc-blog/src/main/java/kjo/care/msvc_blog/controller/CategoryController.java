@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/category")
@@ -47,7 +48,7 @@ public class CategoryController {
     @ApiResponse(responseCode = "200", description = "Categoria obtenido correctamente")
     @ApiResponse(responseCode = "404", description = "Categoria no encontrado")
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponseDto> getById(@PathVariable @Positive(message = "El ID debe ser positivo") Long id) {
+    public ResponseEntity<CategoryResponseDto> getById(@PathVariable UUID id) {
         CategoryResponseDto response = categoryService.findCategoryById(id);
         return ResponseEntity.ok(response);
     }
@@ -67,7 +68,7 @@ public class CategoryController {
     @ApiResponse(responseCode = "200", description = "Categoria actualizada correctamente")
     @ApiResponse(responseCode = "404", description = "Categoria no encontrada")
     @PreAuthorize("hasRole('admin_client_role')")
-    public ResponseEntity<CategoryResponseDto> update(@PathVariable @Positive(message = "El ID debe ser positivo") Long id, @RequestBody CategoryRequestDto category) {
+    public ResponseEntity<CategoryResponseDto> update(@PathVariable UUID id, @RequestBody CategoryRequestDto category) {
         CategoryResponseDto updated = categoryService.updateCategory(id, category);
         return ResponseEntity.ok(updated);
     }
@@ -77,7 +78,7 @@ public class CategoryController {
     @ApiResponse(responseCode = "404", description = "No se encontró la categoria")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('admin_client_role')")
-    public ResponseEntity<Void> delete(@PathVariable @Positive(message = "El ID debe ser positivo") Long id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }

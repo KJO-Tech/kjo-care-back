@@ -8,13 +8,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Repository
-public interface EmergencyRepository extends JpaRepository<EmergencyResource, Long> {
+public interface EmergencyRepository extends JpaRepository<EmergencyResource, UUID> {
 
     @Modifying
     @Transactional
     @Query("UPDATE EmergencyResource e SET e.accessCount = e.accessCount + 1 WHERE e.id = :id")
-    void incrementAccessCount(@Param("id") Long id);
+    void incrementAccessCount(@Param("id") UUID id);
 
     @Query("SELECT COUNT(e) FROM EmergencyResource e")
     int countAllEmergencies();

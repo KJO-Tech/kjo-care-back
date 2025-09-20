@@ -22,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/blogs")
@@ -68,7 +69,7 @@ public class BlogController {
     @ApiResponse(responseCode = "200", description = "Blog obtenido correctamente")
     @ApiResponse(responseCode = "404", description = "Blog no encontrado")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<?> getById(@PathVariable @Positive(message = "El ID debe ser positivo") Long id) {
+    public ResponseEntity<?> getById(@PathVariable UUID id) {
         BlogResponseDto response = blogService.findBlogById(id);
         return ResponseEntity.ok(response);
     }
@@ -77,7 +78,7 @@ public class BlogController {
     @ApiResponse(responseCode = "200", description = "Detalles obtenidos correctamente")
     @ApiResponse(responseCode = "404", description = "Detalles no encontrados")
     @GetMapping("/{id}")
-    public ResponseEntity<?> getDetailsById(@PathVariable @Positive(message = "El ID debe ser positivo") Long id) {
+    public ResponseEntity<?> getDetailsById(@PathVariable UUID id) {
         BlogDetailsDto response = blogService.findBlogDetails(id);
         return ResponseEntity.ok(response);
     }
@@ -98,8 +99,7 @@ public class BlogController {
     @Operation(summary = "Actualizar un blog", description = "Actualiza solo los campos proporcionados")
     @ApiResponse(responseCode = "200", description = "Blog actualizado correctamente")
     @ApiResponse(responseCode = "404", description = "Blog no encontrada")
-    public ResponseEntity<?> update(@PathVariable @Positive(
-            message = "El ID debe ser positivo") Long id
+    public ResponseEntity<?> update(@PathVariable UUID id
             , @Parameter(description = "Datos del blog", content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = BlogRequestDto.class)))
             @ModelAttribute @Validated BlogRequestDto blog
             , @AuthenticationPrincipal Jwt jwt) {
@@ -112,7 +112,7 @@ public class BlogController {
     @ApiResponse(responseCode = "204", description = "Blog eliminado correctamente")
     @ApiResponse(responseCode = "404", description = "No se encontró el blog")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable @Positive(message = "El ID debe ser positivo") Long id,  @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> delete(@PathVariable UUID id,  @AuthenticationPrincipal Jwt jwt) {
         String authenticatedUserId = jwt.getSubject();
         blogService.deleteBlog(id, authenticatedUserId);
         return ResponseEntity.noContent().build();

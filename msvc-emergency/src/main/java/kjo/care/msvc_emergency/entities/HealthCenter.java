@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -17,8 +18,8 @@ import java.time.LocalDate;
 @Table(name = "health_center")
 public class HealthCenter {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     private String userId;
 

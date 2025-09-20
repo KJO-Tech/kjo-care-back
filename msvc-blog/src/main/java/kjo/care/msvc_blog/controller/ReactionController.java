@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/reaction")
@@ -52,7 +53,7 @@ public class ReactionController {
     @ApiResponse(responseCode = "204", description = "Reaccion eliminada correctamente")
     @ApiResponse(responseCode = "404", description = "No se encontró la reaccion")
     @DeleteMapping("/{blogId}")
-    public ResponseEntity<?> delete(@PathVariable @Positive(message = "El ID debe ser positivo") Long blogId, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> delete(@PathVariable UUID blogId, @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         reactionService.deleteReaction(blogId, userId);
         return ResponseEntity.noContent().build();

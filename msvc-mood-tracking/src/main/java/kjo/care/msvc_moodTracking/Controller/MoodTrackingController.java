@@ -46,7 +46,7 @@ public class MoodTrackingController {
     @ApiResponse(responseCode = "200", description = "Estado de animo obtenido correctamente")
     @ApiResponse(responseCode = "404", description = "Estado de animo no encontrado")
     @GetMapping("/{id}")
-    public ResponseEntity<MoodResponseDto> getById(@PathVariable @Positive(message = "El ID debe ser positivo") UUID id) {
+    public ResponseEntity<MoodResponseDto> getById(@PathVariable UUID id) {
         log.info("Peticion getById para obtener estado de animo con id {}", id);
         MoodResponseDto response = moodService.findMoodById(id);
         log.info("Mood obtenido : id = {}", id);
@@ -68,7 +68,7 @@ public class MoodTrackingController {
     @Operation(summary = "Actualizar parcialmente un estado de ánimo", description = "Actualiza solo los campos proporcionados")
     @ApiResponse(responseCode = "200", description = "Estado de ánimo actualizado correctamente")
     @ApiResponse(responseCode = "404", description = "Estado de ánimo no encontrado")
-    public ResponseEntity<MoodResponseDto> update(@PathVariable @Positive(message = "El ID debe ser positivo") UUID id, @RequestBody MoodRequestDto mood) {
+    public ResponseEntity<MoodResponseDto> update(@PathVariable UUID id, @RequestBody MoodRequestDto mood) {
         log.info("Petición recibida para actualizar parcialmente un mood con id {}", id);
         MoodResponseDto updatedMood = moodService.updateMood(id, mood);
         log.info("Mood actualizado parcialmente: id={}", updatedMood.getId());
@@ -79,7 +79,7 @@ public class MoodTrackingController {
     @ApiResponse(responseCode = "204", description = "Estado de animo eliminado correctamente")
     @ApiResponse(responseCode = "404", description = "No se encontró el estado de animo")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable @Positive(message = "El ID debe ser positivo") UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         log.info("Peticion para eliminar un mood con id {}", id);
         moodService.deleteMood(id);
         log.info("Mood eliminado : id {}", id);
@@ -92,7 +92,7 @@ public class MoodTrackingController {
     @ApiResponse(responseCode = "200", description = "Estado de ánimo actualizado correctamente")
     @ApiResponse(responseCode = "404", description = "Estado de ánimo no encontrado")
     public ResponseEntity<MoodResponseDto> toggleStatus(
-            @PathVariable @Positive(message = "El ID debe ser positivo") UUID id) {
+            @PathVariable UUID id) {
         log.info("Petición recibida para cambiar el estado activo/inactivo del mood con id {}", id);
         MoodResponseDto updatedMood = moodService.toggleMoodStatus(id);
         log.info("Mood con id {} cambiado a estado activo: {}", id, updatedMood.getIsActive());

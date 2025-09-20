@@ -7,7 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 @Repository
-public interface BlogRepository extends JpaRepository<Blog, Long> {
+public interface BlogRepository extends JpaRepository<Blog, UUID> {
     Page<Blog> findByState(BlogState state, Pageable pageable);
 }

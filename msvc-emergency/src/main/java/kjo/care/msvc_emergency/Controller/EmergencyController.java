@@ -24,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/resources")
@@ -58,7 +59,7 @@ public class EmergencyController {
     @ApiResponse(responseCode = "200", description = "Recurso de Emergencia obtenido correctamente")
     @ApiResponse(responseCode = "404", description = "Recurso de Emergencia no encontrado")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<?> getById(@PathVariable @Positive(message = "El ID debe ser positivo") Long id) {
+    public ResponseEntity<?> getById(@PathVariable UUID id) {
         EmergencyResponseDto response = emergencyService.findById(id);
         return ResponseEntity.ok(response);
     }
@@ -88,8 +89,7 @@ public class EmergencyController {
     @Operation(summary = "Actualizar un Recurso de Emergencia", description = "Actualiza solo los campos proporcionados")
     @ApiResponse(responseCode = "200", description = "Recurso de Emergencia actualizado correctamente")
     @ApiResponse(responseCode = "404", description = "Recurso de Emergencia no encontrado")
-    public ResponseEntity<?> update(@PathVariable @Positive(
-                                            message = "El ID debe ser positivo") Long id
+    public ResponseEntity<?> update(@PathVariable UUID id
             , @Parameter(description = "Datos del blog", content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = EmergencyRequestDto.class)))
                                     @ModelAttribute @Validated EmergencyRequestDto emergency
             , @AuthenticationPrincipal Jwt jwt) {
@@ -102,7 +102,7 @@ public class EmergencyController {
     @ApiResponse(responseCode = "204", description = "Recurso de Emergencia eliminado correctamente")
     @ApiResponse(responseCode = "404", description = "No se encontró el Recurso de Emergencia")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable @Positive(message = "El ID debe ser positivo") Long id,  @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> delete(@PathVariable UUID id,  @AuthenticationPrincipal Jwt jwt) {
         String authenticatedUserId = jwt.getSubject();
         emergencyService.delete(id, authenticatedUserId);
         return ResponseEntity.noContent().build();

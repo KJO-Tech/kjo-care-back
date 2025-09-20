@@ -32,6 +32,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Log4j2
@@ -86,7 +87,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "blogs", key = "#id")
-    public BlogResponseDto findBlogById(Long id) {
+    public BlogResponseDto findBlogById(UUID id) {
         Blog blog = findExistBlog(id);
         BlogResponseDto response = blogMapper.entityToDto(blog);
         return response;
@@ -95,7 +96,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "blogs", key = "#id")
-    public BlogDetailsDto findBlogDetails(Long id) {
+    public BlogDetailsDto findBlogDetails(UUID id) {
         Blog blog = findExistBlog(id);
         BlogResponseDto blogResponseDto = blogMapper.entityToDto(blog);
 
@@ -141,7 +142,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Transactional
-    public BlogResponseDto updateBlog(Long id, BlogRequestDto dto, String authenticatedUserId) {
+    public BlogResponseDto updateBlog(UUID id, BlogRequestDto dto, String authenticatedUserId) {
         Blog blog = findExistBlog(id);
 
         boolean isAdmin = isAdminFromJwt();
@@ -162,7 +163,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void deleteBlog(Long id,  String authenticatedUserId) {
+    public void deleteBlog(UUID id,  String authenticatedUserId) {
         Blog blog = findExistBlog(id);
         boolean isAdmin = isAdminFromJwt();
 
@@ -174,7 +175,7 @@ public class BlogServiceImpl implements BlogService {
         blogRepository.save(blog);
     }
 
-    private Blog findExistBlog(Long id) {
+    private Blog findExistBlog(UUID id) {
         return blogRepository.findById(id).orElseThrow(() -> {
             return new EntityNotFoundException("Blog con id :" + id + " no encontrado");
         });
@@ -228,7 +229,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     private BlogOverviewDto findBlogOverview(BlogResponseDto blog) {
-        Long blogId = blog.getId();
+        UUID blogId = blog.getId();
 
         Long reactionCount = reactionRepository.countByBlogId(blogId);
         Long commentCount = commentRepository.countByBlogId(blogId);

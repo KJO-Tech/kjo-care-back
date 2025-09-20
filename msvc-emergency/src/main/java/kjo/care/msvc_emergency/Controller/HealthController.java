@@ -25,6 +25,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/centers")
@@ -61,7 +62,7 @@ public class HealthController {
     @ApiResponse(responseCode = "200", description = "Centro de Salud obtenido correctamente")
     @ApiResponse(responseCode = "404", description = "Centro de Salud no encontrado")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<?> getById(@PathVariable @Positive(message = "El ID debe ser positivo") Long id) {
+    public ResponseEntity<?> getById(@PathVariable UUID id) {
         HealthResponseDto response = healthService.findById(id);
         return ResponseEntity.ok(response);
     }
@@ -80,7 +81,7 @@ public class HealthController {
     @Operation(summary = "Actualizar un Centro de Salud", description = "Actualiza solo los campos proporcionados")
     @ApiResponse(responseCode = "200", description = "Centro de Salud actualizado correctamente")
     @ApiResponse(responseCode = "404", description = "Centro de Salud no encontrado")
-    public ResponseEntity<?> update(@PathVariable @Positive(message = "El ID debe ser positivo") Long id, @ModelAttribute @Validated HealthRequestDto healthCenter
+    public ResponseEntity<?> update(@PathVariable UUID id, @ModelAttribute @Validated HealthRequestDto healthCenter
             , @AuthenticationPrincipal Jwt jwt) {
         String authenticatedUserId = jwt.getSubject();
         HealthResponseDto updated = healthService.update(id, healthCenter,authenticatedUserId);
@@ -91,7 +92,7 @@ public class HealthController {
     @ApiResponse(responseCode = "204", description = "Centro de Salud eliminado correctamente")
     @ApiResponse(responseCode = "404", description = "No se encontró el Centro de Salud")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable @Positive(message = "El ID debe ser positivo") Long id,  @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> delete(@PathVariable UUID id,  @AuthenticationPrincipal Jwt jwt) {
         String authenticatedUserId = jwt.getSubject();
         healthService.delete(id, authenticatedUserId);
         return ResponseEntity.noContent().build();

@@ -12,6 +12,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,7 +22,7 @@ public class BlogRequestDto {
 
     @Schema(description = "ID de la categoría", defaultValue = "0")
     @NotNull(message = "La categoría es obligatoria")
-    private Long categoryId;
+    private UUID categoryId;
 
     @NotNull(message = "El título no puede estar vacío")
     @Size(max = 255, message = "El título debe tener máximo 255 caracteres")

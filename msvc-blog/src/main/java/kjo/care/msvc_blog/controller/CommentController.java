@@ -18,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/comment")
@@ -53,7 +54,7 @@ public class CommentController {
     @Operation(summary = "Actualizar un comentario", description = "Actualiza solo los campos proporcionados")
     @ApiResponse(responseCode = "200", description = "Comentario actualizado correctamente")
     @ApiResponse(responseCode = "404", description = "Comentario no encontrado")
-    public ResponseEntity<?> update(@PathVariable @Positive(message = "El ID debe ser positivo") Long id, @ModelAttribute @Validated CommentRequestDto comment, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> update(@PathVariable UUID id, @ModelAttribute @Validated CommentRequestDto comment, @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         CommentResponseDto updated = commentService.updateComment(id, comment,userId);
         return ResponseEntity.ok(updated);
@@ -63,7 +64,7 @@ public class CommentController {
     @ApiResponse(responseCode = "204", description = "Comentario eliminado correctamente")
     @ApiResponse(responseCode = "404", description = "No se encontró el Comentario")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable @Positive(message = "El ID debe ser positivo") Long id,  @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> delete(@PathVariable UUID id,  @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         commentService.deleteComment(id, userId);
         return ResponseEntity.noContent().build();
