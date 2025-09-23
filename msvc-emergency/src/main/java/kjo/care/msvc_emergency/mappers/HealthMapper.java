@@ -3,7 +3,6 @@ package kjo.care.msvc_emergency.mappers;
 import jakarta.annotation.PostConstruct;
 import kjo.care.msvc_emergency.client.UserClient;
 import kjo.care.msvc_emergency.dto.*;
-import kjo.care.msvc_emergency.entities.EmergencyResource;
 import kjo.care.msvc_emergency.entities.HealthCenter;
 import kjo.care.msvc_emergency.repositories.HealthRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +12,7 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -53,5 +53,25 @@ public class HealthMapper {
         modelMapper.getConfiguration().setSkipNullEnabled(true);
         modelMapper.map(dto, entity);
         entity.setModifiedDate(LocalDate.now());
+    }
+
+    public List<HealthResponseDto> entitiesToDtos(List<HealthCenter> entities) {
+        List<String> userIds = entities.stream()
+                .map(HealthCenter::getUserId)
+                .distinct()
+                .toList();
+
+        List<UserInfoDto> users = userClient.findUsersByIds(userIds);
+
+        return entities.stream()
+                .map(entity -> {
+                    HealthResponseDto dto = modelMapper.map(entity, HealthResponseDto.class);
+                    users.stream()
+                            .filter(user -> user.getId().equals(entity.getUserId()))
+                            .findFirst()
+                            .ifPresent(dto::setUser);
+                    return dto;
+                })
+                .toList();
     }
 }

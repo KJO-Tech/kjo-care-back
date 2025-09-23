@@ -32,18 +32,20 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**","/"
-                        ).permitAll()
+                                "/webjars/**",
+                                "/"
+                                // "/user-mood/count",
+                                // "/user-mood/count/previous-month"
+                        )
+                        .permitAll()
                         .requestMatchers("/mood-tracking/**").authenticated()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth
                         .jwt(jwt -> jwt
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter)
-                        )
-                )
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .jwtAuthenticationConverter(
+                                        jwtAuthenticationConverter)))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
     }
 }

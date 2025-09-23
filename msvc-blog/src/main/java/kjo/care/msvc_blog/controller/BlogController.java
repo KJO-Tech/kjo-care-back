@@ -12,6 +12,7 @@ import kjo.care.msvc_blog.dto.*;
 import kjo.care.msvc_blog.services.BlogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +22,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.*;
 
 @RestController
 @RequestMapping("/blogs")
@@ -118,4 +119,56 @@ public class BlogController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Obtener cantidad total de blogs", description = "Devuelve el número total de blogs publicados")
+    @ApiResponse(responseCode = "200", description = "Conteo obtenido correctamente")
+    @GetMapping("/count")
+    public ResponseEntity<BlogCountDto> getBlogCount() {
+        log.info("Petición para obtener cantidad total de blogs");
+        Long count = blogService.countBlogs();
+        log.info("Total de blogs: {}", count);
+        return ResponseEntity.ok(new BlogCountDto(count));
+    }
+
+    @Operation(summary = "Obtener cantidad de blogs del mes anterior", description = "Devuelve el número de blogs publicados en el mes anterior")
+    @ApiResponse(responseCode = "200", description = "Conteo del mes anterior obtenido correctamente")
+    @GetMapping("/count/previous-month")
+    public ResponseEntity<BlogCountDto> getPreviousMonthBlogs() {
+        log.info("Petición para obtener cantidad de blogs del mes anterior");
+        Long count = blogService.countBlogsPreviousMonth();
+        log.info("Total de blogs del mes anterior: {}", count);
+        return ResponseEntity.ok(new BlogCountDto(count));
+    }
+
+    @Operation(summary = "Obtener conteo de blogs por día entre fechas", description = "API interna para consultas de análisis")
+    @ApiResponse(responseCode = "200", description = "Datos obtenidos correctamente")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    @GetMapping("/countByDay")
+    public ResponseEntity<?> countBlogsByDay(
+            @RequestParam String state,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        log.info("Consulta: Contando blogs por día. State={}, startDate={}, endDate={}",
+                state, startDate, endDate);
+
+        try {
+            List<Object[]> results = blogService.countBlogsByDayBetweenDates(state, startDate, endDate);
+
+            List<Map<String, Object>> response = new ArrayList<>();
+            for (Object[] result : results) {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("date", result[0]);
+                entry.put("count", result[1]);
+                response.add(entry);
+                log.debug("Resultado procesado: fecha={}, conteo={}", result[0], result[1]);
+            }
+
+            log.info("Resultados obtenidos: {} registros", results.size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error al procesar conteo de blogs por día: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al procesar la consulta", "message", e.getMessage()));
+        }
+    }
 }

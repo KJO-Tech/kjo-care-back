@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,12 +41,16 @@ public class HealthServiceImpl implements HealthService {
 
     @Override
     public List<HealthResponseDto> findAll() {
-        return healthRepository.findAll().stream().map(healthMapper::entityToDto).toList();
+        List<HealthCenter> entities = healthRepository.findAll();
+        return healthMapper.entitiesToDtos(entities);
     }
 
     @Override
     public List<HealthResponseDto> findAllActive() {
-        return healthRepository.findAll().stream().filter(health -> health.getStatus().equals(StatusHealth.ACTIVE)).map(healthMapper::entityToDto).toList();
+        List<HealthCenter> activeEntities = healthRepository.findAll().stream()
+                .filter(health -> health.getStatus().equals(StatusHealth.ACTIVE))
+                .toList();
+        return healthMapper.entitiesToDtos(activeEntities);
     }
 
     @Override
@@ -95,6 +100,26 @@ public class HealthServiceImpl implements HealthService {
         }
         healthCenter.setStatus(StatusHealth.INACTIVE);
         healthRepository.save(healthCenter);
+    }
+
+    @Override
+    public int countTotalHealthCenters() {
+        return (int) healthRepository.count();
+    }
+
+    @Override
+    public int countActiveHealthCenters() {
+        return (int) healthRepository.countByStatus(StatusHealth.ACTIVE);
+    }
+
+    @Override
+    public int countPreviousMonthHealthCenters() {
+        // Definimos el inicio y fin del mes anterior
+        LocalDate now = LocalDate.now();
+        LocalDate startOfPreviousMonth = now.minusMonths(1).withDayOfMonth(1);
+        LocalDate endOfPreviousMonth = startOfPreviousMonth.plusMonths(1).minusDays(1);
+
+        return healthRepository.countByCreatedDateBetween(startOfPreviousMonth, endOfPreviousMonth);
     }
 
     private HealthCenter findHealthCenter(UUID id) {

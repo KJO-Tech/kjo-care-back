@@ -3,6 +3,7 @@ package kjo.care.msvc_blog.mappers;
 import jakarta.annotation.PostConstruct;
 import kjo.care.msvc_blog.client.UserClient;
 import kjo.care.msvc_blog.dto.*;
+import kjo.care.msvc_blog.entities.Comment;
 import kjo.care.msvc_blog.entities.Reaction;
 import kjo.care.msvc_blog.repositories.ReactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 
 @Component
@@ -50,6 +53,26 @@ public class ReactionMapper {
 
     public Reaction dtoToEntity(ReactionRequestDto dto) {
         return  modelMapper.map(dto, Reaction.class);
+    }
+
+    public List<ReactionResponseDto> entitiesToDtos(List<Reaction> entities) {
+        List<String> userIds = entities.stream()
+                .map(Reaction::getUserId)
+                .distinct()
+                .toList();
+
+        List<UserInfoDto> users = userClient.findUsersByIds(userIds);
+
+        return entities.stream()
+                .map(entity -> {
+                    ReactionResponseDto dto = modelMapper.map(entity, ReactionResponseDto.class);
+                    users.stream()
+                            .filter(user -> user.getId().equals(entity.getUserId()))
+                            .findFirst()
+                            .ifPresent(dto::setUserId);
+                    return dto;
+                })
+                .toList();
     }
 
 }

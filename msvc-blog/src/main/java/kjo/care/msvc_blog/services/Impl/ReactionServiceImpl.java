@@ -42,7 +42,8 @@ public class ReactionServiceImpl implements ReactionService {
     @Override
     @Transactional(readOnly = true)
     public List<ReactionResponseDto> findAllReactions() {
-        return reactionRepository.findAll().stream().map(reactionMapper::entityToDto).toList();
+        List<Reaction> reactions = reactionRepository.findAll();
+        return reactionMapper.entitiesToDtos(reactions);
     }
 
     @Override
