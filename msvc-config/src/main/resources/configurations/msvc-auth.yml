@@ -20,6 +20,14 @@ keycloak:
   password: ${KEYCLOAK_PASSWORD:admin}
   client-secret: ${KEYCLOAK_CLIENT_SECRET:default-secret-key}
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    url: /v3/api-docs
+    enabled: true
+
 jwt:
   auth:
     converter:

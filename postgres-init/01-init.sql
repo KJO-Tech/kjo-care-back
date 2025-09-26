@@ -4,5 +4,9 @@
 
 CREATE DATABASE blogs;
 GRANT ALL PRIVILEGES ON DATABASE blogs TO postgres;
+
+CREATE DATABASE emergency;
+GRANT ALL PRIVILEGES ON DATABASE emergency TO postgres;
+
 CREATE DATABASE mood_tracking;
 GRANT ALL PRIVILEGES ON DATABASE mood_tracking TO postgres;
