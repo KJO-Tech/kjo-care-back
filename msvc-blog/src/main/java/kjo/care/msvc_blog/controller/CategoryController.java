@@ -5,9 +5,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
+import kjo.care.msvc_blog.dto.ApiResponseDto;
 import kjo.care.msvc_blog.dto.CategoryRequestDto;
 import kjo.care.msvc_blog.dto.CategoryResponseDto;
 import kjo.care.msvc_blog.services.CategoryService;
+import kjo.care.msvc_blog.utils.ResponseBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -39,18 +41,18 @@ public class CategoryController {
     @ApiResponse(responseCode = "200", description = "Categorias obtenidas correctamente")
     @ApiResponse(responseCode = "204", description = "No se encontraron categorias")
     @GetMapping("")
-    public ResponseEntity<?> findAll() {
+    public ResponseEntity<ApiResponseDto<List<CategoryResponseDto>>> findAll() {
         List<CategoryResponseDto> response = categoryService.findAllCategories();
-        return ResponseEntity.ok(response);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Categorias obtenidas correctamente", true, response);
     }
 
     @Operation(summary = "Obtener Categoria por ID", description = "Devuelve una categoria por su ID")
     @ApiResponse(responseCode = "200", description = "Categoria obtenido correctamente")
     @ApiResponse(responseCode = "404", description = "Categoria no encontrado")
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponseDto> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponseDto<CategoryResponseDto>> getById(@PathVariable UUID id) {
         CategoryResponseDto response = categoryService.findCategoryById(id);
-        return ResponseEntity.ok(response);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Categoria obtenida correctamente", true, response);
     }
 
     @Operation(summary = "Crear una Categoria", description = "Crea una categoria")
@@ -58,9 +60,9 @@ public class CategoryController {
     @ApiResponse(responseCode = "400", description = "No se pudo crear la categoria")
     @PostMapping("")
     @PreAuthorize("hasRole('admin_client_role')")
-    public ResponseEntity<CategoryResponseDto> create(@RequestBody @Validated CategoryRequestDto category) {
+    public ResponseEntity<ApiResponseDto<CategoryResponseDto>> create(@RequestBody @Validated CategoryRequestDto category) {
         CategoryResponseDto createCategory = categoryService.saveCategory(category);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createCategory);
+        return ResponseBuilder.buildResponse(HttpStatus.CREATED, "Categoria creada correctamente", true, createCategory);
     }
 
     @PatchMapping("/{id}")
@@ -68,9 +70,9 @@ public class CategoryController {
     @ApiResponse(responseCode = "200", description = "Categoria actualizada correctamente")
     @ApiResponse(responseCode = "404", description = "Categoria no encontrada")
     @PreAuthorize("hasRole('admin_client_role')")
-    public ResponseEntity<CategoryResponseDto> update(@PathVariable UUID id, @RequestBody CategoryRequestDto category) {
+    public ResponseEntity<ApiResponseDto<CategoryResponseDto>> update(@PathVariable UUID id, @RequestBody CategoryRequestDto category) {
         CategoryResponseDto updated = categoryService.updateCategory(id, category);
-        return ResponseEntity.ok(updated);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Categoria actualizada correctamente", true, updated);
     }
 
     @Operation(summary = "Eliminar una categoria por ID", description = "Elimina un categoria por su ID")
@@ -78,9 +80,9 @@ public class CategoryController {
     @ApiResponse(responseCode = "404", description = "No se encontró la categoria")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('admin_client_role')")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponseDto<Object>> delete(@PathVariable UUID id) {
         categoryService.deleteCategory(id);
-        return ResponseEntity.noContent().build();
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Categoria eliminada correctamente", true, null);
     }
 
 }

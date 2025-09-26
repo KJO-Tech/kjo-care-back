@@ -1,6 +1,9 @@
 package com.analytics.exceptions;
 
+import com.analytics.DTOs.ApiResponseDto;
+import com.analytics.utils.ResponseBuilder;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpMethod;
@@ -25,122 +28,77 @@ import java.util.stream.Collectors;
 public class GlobalExceptionController {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponseDto<Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         List<String> details = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.toList());
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                "VALIDATION_ERROR",
-                "Errores de validación en los campos enviados",
-                details);
-
         log.warn("Validation error: {}", details);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Errores de validación en los campos enviados", false, details);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                "INVALID_REQUEST_BODY",
-                "El formato del cuerpo de la solicitud es inválido",
-                Collections.singletonList("Verifica la sintaxis JSON y los tipos de datos enviados"));
-
+    public ResponseEntity<ApiResponseDto<Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         log.warn("Invalid request body: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "El formato del cuerpo de la solicitud es inválido", false, Collections.singletonList("Verifica la sintaxis JSON y los tipos de datos enviados"));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
+    public ResponseEntity<ApiResponseDto<Object>> handleConstraintViolationException(ConstraintViolationException ex) {
         List<String> details = ex.getConstraintViolations()
                 .stream()
                 .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
                 .collect(Collectors.toList());
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                "CONSTRAINT_VIOLATION",
-                "Violación de restricciones en los datos",
-                details);
-
         log.warn("Constraint violation: {}", details);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseBuilder.buildResponse(HttpStatus.BAD_REQUEST, "Violación de restricciones en los datos", false, details);
     }
 
     @ExceptionHandler(MethodNotAllowedException.class)
-    public ResponseEntity<ErrorResponse> handleMethodNotAllowedException(MethodNotAllowedException ex) {
+    public ResponseEntity<ApiResponseDto<Object>> handleMethodNotAllowedException(MethodNotAllowedException ex) {
         List<String> supportedMethods = ex.getSupportedMethods() != null
                 ? ex.getSupportedMethods().stream()
                 .map(HttpMethod::name)
                 .collect(Collectors.toList())
                 : Collections.emptyList();
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                "METHOD_NOT_ALLOWED",
-                "Método HTTP no soportado",
-                Collections.singletonList(
-                        "Métodos soportados: " + String.join(", ", supportedMethods)));
-
         log.warn("Method not allowed: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
+        return ResponseBuilder.buildResponse(HttpStatus.METHOD_NOT_ALLOWED, "Método HTTP no soportado", false, supportedMethods);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                "RESOURCE_NOT_FOUND",
-                "El recurso solicitado no existe",
-                Collections.singletonList("Motivo: " + ex.getReason()));
-
+    public ResponseEntity<ApiResponseDto<Object>> handleResponseStatusException(ResponseStatusException ex) {
         log.warn("Resource not found: {}", ex.getReason());
-        return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
+        return ResponseBuilder.buildResponse(HttpStatus.NOT_FOUND, "Recurso no encontrado", false, Collections.singletonList("Motivo: " + ex.getReason()));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                "ACCESS_DENIED",
-                "Acceso denegado",
-                Collections.singletonList(
-                        "No tienes los permisos necesarios para realizar esta acción"));
-
+    public ResponseEntity<ApiResponseDto<Object>> handleAccessDeniedException(AccessDeniedException ex) {
         log.warn("Access denied for user");
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        return ResponseBuilder.buildResponse(HttpStatus.FORBIDDEN, "Acceso denegado", false, Collections.singletonList("No tienes los permisos necesarios para realizar esta acción"));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                "SERVER_ERROR",
-                "Ha ocurrido un error en el servidor",
-                Collections.singletonList(ex.getMessage()));
-
+    public ResponseEntity<ApiResponseDto<Object>> handleException(Exception ex) {
         log.error("Internal server error: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        return ResponseBuilder.buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Ha ocurrido un error en el servidor", false, Collections.singletonList(ex.getMessage()));
     }
 
     @ExceptionHandler(WebClientResponseException.class)
-    public ResponseEntity<ErrorResponse> handleWebClientResponseException(WebClientResponseException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                "EXTERNAL_SERVICE_ERROR",
-                "Error al comunicarse con un servicio externo",
-                Collections.singletonList("Servicio: " + ex.getRequest().getURI() + ", Status: "
-                        + ex.getStatusCode()));
+    public ResponseEntity<ApiResponseDto<Object>> handleWebClientResponseException(WebClientResponseException ex) {
 
         log.error("Error calling external service: {}, status: {}", ex.getRequest().getURI(),
                 ex.getStatusCode());
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errorResponse);
+        return ResponseBuilder.buildResponse(HttpStatus.BAD_GATEWAY, "Error al comunicarse con un servicio externo", false,
+                Collections.singletonList("Servicio: " + ex.getRequest().getURI() + ", Status: " + ex.getStatusCode()));
     }
 
     @ExceptionHandler(CallNotPermittedException.class)
-    public ResponseEntity<ErrorResponse> handleCallNotPermittedException(CallNotPermittedException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                "SERVICE_UNAVAILABLE",
-                "El servicio solicitado no está disponible temporalmente",
-                Collections.singletonList("Circuit breaker abierto: " + ex.getMessage()));
-
+    public ResponseEntity<ApiResponseDto<Object>> handleCallNotPermittedException(CallNotPermittedException ex) {
         log.error("Circuit breaker abierto: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse);
+        return ResponseBuilder.buildResponse(HttpStatus.SERVICE_UNAVAILABLE, "El servicio solicitado no está disponible temporalmente", false,
+                Collections.singletonList("Circuit breaker abierto: " + ex.getMessage()));
     }
 }

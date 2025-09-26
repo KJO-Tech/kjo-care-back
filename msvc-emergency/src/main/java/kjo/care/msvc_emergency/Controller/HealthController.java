@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import kjo.care.msvc_emergency.dto.*;
 import kjo.care.msvc_emergency.services.HealthService;
+import kjo.care.msvc_emergency.utils.ResponseBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -40,58 +41,64 @@ public class HealthController {
     @ApiResponse(responseCode = "204", description = "No se encontraron los Centros de Salud")
     @PreAuthorize("hasRole('admin_client_role')")
     @GetMapping("/all")
-    public ResponseEntity<?> findAll() {
+    public ResponseEntity<ApiResponseDto<List<HealthResponseDto>>> findAll() {
         List<HealthResponseDto> response = healthService.findAll();
-        return ResponseEntity.ok(response);
+        if (response.isEmpty()){
+            return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Centros de Salud", true, response);
+        }
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Centros de Salud obtenidos correctamente", true, response);
     }
 
     @Operation(summary = "Obtener todos los Centros de Salud", description = "Devuelve todos los centros de salud activos")
     @ApiResponse(responseCode = "200", description = "Centros de Salud obtenidos correctamente")
     @ApiResponse(responseCode = "204", description = "No se encontraron los Centros de Salud")
     @GetMapping
-    public ResponseEntity<?> findAllActive() {
+    public ResponseEntity<ApiResponseDto<List<HealthResponseDto>>> findAllActive() {
         List<HealthResponseDto> response = healthService.findAllActive();
-        return ResponseEntity.ok(response);
+        if (response.isEmpty()){
+            return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Centros de Salud", true, response);
+        }
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Centros de Salud obtenidos correctamente", true, response);
     }
 
     @Operation(summary = "Obtener Centro de Salud por ID", description = "Devuelve un centro de salud por su ID")
     @ApiResponse(responseCode = "200", description = "Centro de Salud obtenido correctamente")
     @ApiResponse(responseCode = "404", description = "Centro de Salud no encontrado")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<?> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponseDto<HealthResponseDto>> getById(@PathVariable UUID id) {
         HealthResponseDto response = healthService.findById(id);
-        return ResponseEntity.ok(response);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Centro de Salud obtenido correctamente", true, response);
     }
 
     @Operation(summary = "Crear un Centro de Salud", description = "Crea un centro de salud")
     @ApiResponse(responseCode = "201", description = "Centro de Salud creado correctamente")
     @ApiResponse(responseCode = "400", description = "No se pudo crear el centro de Salud")
     @PostMapping
-    public ResponseEntity<?> create(@ModelAttribute @Validated HealthRequestDto healthCenter, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponseDto<HealthResponseDto>> create(@ModelAttribute @Validated HealthRequestDto healthCenter, @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         HealthResponseDto createHealth = healthService.save(healthCenter, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createHealth);
+        return ResponseBuilder.buildResponse(HttpStatus.CREATED, "Centro de Salud creado correctamente", true, createHealth);
     }
 
     @PutMapping(path = "/{id}")
     @Operation(summary = "Actualizar un Centro de Salud", description = "Actualiza solo los campos proporcionados")
     @ApiResponse(responseCode = "200", description = "Centro de Salud actualizado correctamente")
     @ApiResponse(responseCode = "404", description = "Centro de Salud no encontrado")
-    public ResponseEntity<?> update(@PathVariable UUID id, @ModelAttribute @Validated HealthRequestDto healthCenter
+    public ResponseEntity<ApiResponseDto<HealthResponseDto>> update(@PathVariable UUID id, @ModelAttribute @Validated HealthRequestDto healthCenter
             , @AuthenticationPrincipal Jwt jwt) {
         String authenticatedUserId = jwt.getSubject();
         HealthResponseDto updated = healthService.update(id, healthCenter,authenticatedUserId);
-        return ResponseEntity.ok(updated);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Centro de Salud actualizado correctamente", true, updated);
     }
 
     @Operation(summary = "Eliminar una centro de salud por ID", description = "Elimina un centro de salud por su ID")
     @ApiResponse(responseCode = "204", description = "Centro de Salud eliminado correctamente")
     @ApiResponse(responseCode = "404", description = "No se encontró el Centro de Salud")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable UUID id,  @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponseDto<Object>> delete(@PathVariable UUID id,  @AuthenticationPrincipal Jwt jwt) {
         String authenticatedUserId = jwt.getSubject();
         healthService.delete(id, authenticatedUserId);
-        return ResponseEntity.noContent().build();
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Centro de Salud eliminado correctamente", true, null);
     }
 
     @Operation(summary = "Obtener cantidad total de centros de salud",

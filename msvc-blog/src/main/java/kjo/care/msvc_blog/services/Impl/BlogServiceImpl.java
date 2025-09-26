@@ -289,8 +289,8 @@ public class BlogServiceImpl implements BlogService {
 
     private List<BlogOverviewDto> processBlogsAndBuildOverviews(List<Blog> blogs) {
         List<UUID> blogIds = blogs.stream().map(Blog::getId).toList();
-        Map<Long, Long> reactionCounts = getReactionCounts(blogIds);
-        Map<Long, Long> commentCounts = getCommentCounts(blogIds);
+        Map<UUID, Long> reactionCounts = getReactionCounts(blogIds);
+        Map<UUID, Long> commentCounts = getCommentCounts(blogIds);
 
         List<BlogResponseDto> blogDtos = blogMapper.entitiesToDtos(blogs, fetchUsersForBlogs(blogs));
 
@@ -311,7 +311,7 @@ public class BlogServiceImpl implements BlogService {
                 .toList();
     }
 
-    private BlogOverviewDto buildBlogOverview(BlogResponseDto dto, Map<Long, Long> reactionCounts, Map<Long, Long> commentCounts) {
+    private BlogOverviewDto buildBlogOverview(BlogResponseDto dto, Map<UUID, Long> reactionCounts, Map<UUID, Long> commentCounts) {
         return BlogOverviewDto.builder()
                 .blog(dto)
                 .reactionCount(reactionCounts.getOrDefault(dto.getId(), 0L))
@@ -319,18 +319,18 @@ public class BlogServiceImpl implements BlogService {
                 .build();
     }
 
-    private Map<Long, Long> getReactionCounts(List<UUID> blogIds) {
+    private Map<UUID, Long> getReactionCounts(List<UUID> blogIds) {
         return reactionRepository.countByBlogIds(blogIds).stream()
                 .collect(Collectors.toMap(
-                        arr -> (Long) arr[0],
+                        arr -> (UUID) arr[0],
                         arr -> (Long) arr[1]
                 ));
     }
 
-    private Map<Long, Long> getCommentCounts(List<UUID> blogIds) {
+    private Map<UUID, Long> getCommentCounts(List<UUID> blogIds) {
         return commentRepository.countByBlogIds(blogIds).stream()
                 .collect(Collectors.toMap(
-                        arr -> (Long) arr[0],
+                        arr -> (UUID) arr[0],
                         arr -> (Long) arr[1]
                 ));
     }
