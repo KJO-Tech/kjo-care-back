@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,11 +16,11 @@ import lombok.NoArgsConstructor;
 public class CommentRequestDto {
 
     @NotNull(message = "El blog no puede estar vacío")
-    private Long blogId;
+    private UUID blogId;
 
     @NotNull(message = "El contenido no puede estar vacío")
     private String content;
 
     @Nullable
-    private Long commentParentId;
+    private UUID commentParentId;
 }

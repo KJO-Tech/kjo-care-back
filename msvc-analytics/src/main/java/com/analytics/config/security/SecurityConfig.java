@@ -31,7 +31,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                 "/",
+                                "/",
                                 "/analytics/test"
                                 // "/analytics/dashboard-stats"
                         ).permitAll()

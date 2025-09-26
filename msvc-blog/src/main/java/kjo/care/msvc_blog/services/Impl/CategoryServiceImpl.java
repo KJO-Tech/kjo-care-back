@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Log4j2
@@ -34,7 +35,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "categories", key = "#id")
-    public CategoryResponseDto findCategoryById(Long id) {
+    public CategoryResponseDto findCategoryById(UUID id) {
         Category category = findExistCategory(id);
         CategoryResponseDto response = categoryMapper.entityToDto(category);
         return response;
@@ -50,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Transactional
     @Override
-    public CategoryResponseDto updateCategory(Long id, CategoryRequestDto dto) {
+    public CategoryResponseDto updateCategory(UUID id, CategoryRequestDto dto) {
         Category category = findExistCategory(id);
         categoryMapper.updateEntityFromDto(dto, category);
         categoryRepository.save(category);
@@ -58,12 +59,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void deleteCategory(Long id) {
+    public void deleteCategory(UUID id) {
         Category category = findExistCategory(id);
         categoryRepository.delete(category);
     }
 
-    private Category findExistCategory(Long id) {
+    private Category findExistCategory(UUID id) {
         return categoryRepository.findById(id).orElseThrow(() -> {
             return new EntityNotFoundException("Category con id :" + id + " no encontrado");
         });

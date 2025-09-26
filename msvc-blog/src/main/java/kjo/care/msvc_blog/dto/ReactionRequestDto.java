@@ -6,11 +6,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ReactionRequestDto {
     @NotNull(message = "El blog no puede estar vacío")
-    private Long blogId;
+    private UUID blogId;
 }

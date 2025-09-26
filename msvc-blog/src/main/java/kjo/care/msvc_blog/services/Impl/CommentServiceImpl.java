@@ -24,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Log4j2
@@ -57,6 +58,7 @@ public class CommentServiceImpl implements CommentService {
                     .orElseThrow(() -> new EntityNotFoundException("Comentario padre no encontrado"));
         }
 
+
         Comment comment = commentMapper.dtoToEntity(dto);
         comment.setBlog(blog);
         comment.setUserId(userId);
@@ -69,7 +71,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public CommentResponseDto updateComment(Long id, CommentRequestDto dto, String userId) {
+    public CommentResponseDto updateComment(UUID id, CommentRequestDto dto, String userId) {
         Comment comment = findExistComment(id);
 
         boolean isAdmin = isAdminFromJwt();
@@ -89,7 +91,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void deleteComment(Long id, String userId) {
+    public void deleteComment(UUID id, String userId) {
         Comment comment = findExistComment(id);
         boolean isAdmin = isAdminFromJwt();
         if (!isAdmin && !comment.getUserId().equals(userId)) {
@@ -98,7 +100,7 @@ public class CommentServiceImpl implements CommentService {
         commentRepository.delete(comment);
     }
 
-    private Comment findExistComment(Long id) {
+    private Comment findExistComment(UUID id) {
         return commentRepository.findById(id).orElseThrow(() -> {
             return new EntityNotFoundException("Comment con id :" + id + " no encontrado");
         });

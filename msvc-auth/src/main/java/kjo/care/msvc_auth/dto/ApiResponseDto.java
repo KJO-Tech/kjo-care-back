@@ -1,17 +1,17 @@
-package kjo.care.msvc_blog.dto;
+package kjo.care.msvc_auth.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import java.util.UUID;
-
 @Builder
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class CategoryResponseDto {
-    private UUID id;
-    private String name;
+public class ApiResponseDto<T> {
+    private int statusCode;
+    private boolean isSuccess;
+    private String message;
+    private T result;
 }

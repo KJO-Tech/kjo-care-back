@@ -26,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Log4j2
@@ -67,7 +68,7 @@ public class ReactionServiceImpl implements ReactionService {
     }
 
     @Override
-    public void deleteReaction(Long blogId, String authenticatedUserId) {
+    public void deleteReaction(UUID blogId, String authenticatedUserId) {
         Reaction reaction = reactionRepository.findByUserIdAndBlogId(authenticatedUserId, blogId)
                 .orElseThrow(() -> new EntityNotFoundException("Reacción no encontrada"));
 
@@ -93,7 +94,7 @@ public class ReactionServiceImpl implements ReactionService {
         return false;
     }
 
-    private Reaction findExistReaction(Long id) {
+    private Reaction findExistReaction(UUID id) {
         return reactionRepository.findById(id).orElseThrow(() -> {
             return new EntityNotFoundException("Reaction con id :" + id + " no encontrado");
         });

@@ -26,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Log4j2
@@ -53,7 +54,7 @@ public class HealthServiceImpl implements HealthService {
     }
 
     @Override
-    public HealthResponseDto findById(Long id) {
+    public HealthResponseDto findById(UUID id) {
         HealthCenter healthCenter = findHealthCenter(id);
         boolean isAdmin = isAdminFromJwt();
         boolean isActive = healthCenter.getStatus().equals(StatusHealth.ACTIVE);
@@ -76,7 +77,7 @@ public class HealthServiceImpl implements HealthService {
     }
 
     @Override
-    public HealthResponseDto update(Long id, HealthRequestDto dto, String userId) {
+    public HealthResponseDto update(UUID id, HealthRequestDto dto, String userId) {
         HealthCenter healthCenter = findHealthCenter(id);
 
         boolean isAdmin = isAdminFromJwt();
@@ -91,7 +92,7 @@ public class HealthServiceImpl implements HealthService {
     }
 
     @Override
-    public void delete(Long id, String userId) {
+    public void delete(UUID id, String userId) {
         HealthCenter healthCenter = findHealthCenter(id);
         boolean isAdmin = isAdminFromJwt();
         if (!isAdmin && !healthCenter.getUserId().equals(userId)) {
@@ -121,7 +122,7 @@ public class HealthServiceImpl implements HealthService {
         return healthRepository.countByCreatedDateBetween(startOfPreviousMonth, endOfPreviousMonth);
     }
 
-    private HealthCenter findHealthCenter(Long id) {
+    private HealthCenter findHealthCenter(UUID id) {
         return healthRepository.findById(id).orElseThrow(() -> {
             return new EntityNotFoundException("Centro de salud con id :" + id + " no encontrado");
         });

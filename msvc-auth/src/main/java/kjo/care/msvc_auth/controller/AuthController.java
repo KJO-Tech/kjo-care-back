@@ -5,13 +5,14 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import kjo.care.msvc_auth.dto.UserCountDto;
-import kjo.care.msvc_auth.dto.UserDTO;
-import kjo.care.msvc_auth.dto.UserRequestDto;
+import kjo.care.msvc_auth.dto.*;
 import kjo.care.msvc_auth.service.IKeycloakService;
+import kjo.care.msvc_auth.util.ResponseBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -36,20 +37,23 @@ public class AuthController {
 
     @GetMapping("/list")
     @PreAuthorize("hasRole('admin_client_role')")
-    public ResponseEntity<?> findAllUser() {
-        return ResponseEntity.ok(keycloakService.findAllUser());
+    public ResponseEntity<ApiResponseDto<List<UserRepresentation>>> findAllUser() {
+        List<UserRepresentation> users = keycloakService.findAllUser();
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Usuarios obtenidos correctamente", true, users);
     }
 
     @GetMapping("/listAll")
     @PreAuthorize("hasRole('admin_client_role')")
-    public ResponseEntity<?> findAllUserRoles() {
-        return ResponseEntity.ok(keycloakService.findAllUsersRoles());
+    public ResponseEntity<ApiResponseDto<List<UserResponseDto>>> findAllUserRoles() {
+        List<UserResponseDto> users = keycloakService.findAllUsersRoles();
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Usuarios obtenidos correctamente", true, users);
     }
 
     @GetMapping("search/{username}")
     @PreAuthorize("hasRole('admin_client_role')")
-    public ResponseEntity<?> findAllUserByUsername(@PathVariable String username) {
-        return ResponseEntity.ok(keycloakService.findAllUserByUsername(username));
+    public ResponseEntity<ApiResponseDto<List<UserRepresentation>>> findAllUserByUsername(@PathVariable String username) {
+        List<UserRepresentation> users = keycloakService.findAllUserByUsername(username);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Usuario obtenido correctamente", true, users);
     }
 
     @GetMapping("/{userId}")
@@ -66,26 +70,31 @@ public class AuthController {
     public ResponseEntity<?> createUser(@RequestBody UserDTO userDTO) throws URISyntaxException {
         String message = keycloakService.createUser(userDTO);
 
-        var response = new HashMap<String, String>();
-        response.put("message", message);
-        return ResponseEntity.created(new URI("/keycloak/user/register")).body(response);
+        return ResponseEntity.created(new URI("/keycloak/user/register"))
+                .body(ApiResponseDto.<String>builder()
+                        .statusCode(HttpStatus.CREATED.value())
+                        .isSuccess(true)
+                        .message("Usuario registrado correctamente")
+                        .result(message)
+                        .build()
+                );
     }
 
     @PutMapping("/update/{userId}")
     @PreAuthorize("hasRole('user_client_role') or hasRole('admin_client_role')")
-    public ResponseEntity<?> updateUser(@PathVariable String userId, @RequestBody UserRequestDto userDTO) {
+    public ResponseEntity<ApiResponseDto<Object>> updateUser(@PathVariable String userId, @RequestBody UserRequestDto userDTO) {
         keycloakService.updateUser(userId, userDTO);
 
         var response = new HashMap<String, String>();
         response.put("message", "User updated successfully");
-        return ResponseEntity.ok(response);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Usuario actualizado correctamente", true, response);
     }
 
     @DeleteMapping("/delete/{userId}")
     @PreAuthorize("hasRole('user_client_role') or hasRole('admin_client_role')")
-    public ResponseEntity<?> deleteUser(@PathVariable String userId) {
+    public ResponseEntity<ApiResponseDto<Object>> deleteUser(@PathVariable String userId) {
         keycloakService.deleteUser(userId);
-        return ResponseEntity.noContent().build();
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Usuario eliminado correctamente", true, null);
     }
 
     @GetMapping("/count")
