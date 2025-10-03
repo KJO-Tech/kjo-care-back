@@ -151,7 +151,7 @@ public class HealthController {
 
         if (response.isEmpty()) {
             return ResponseBuilder.buildResponse(
-                    HttpStatus.NO_CONTENT,
+                    HttpStatus.OK,
                     "No se encontraron Centros de Salud cercanos",
                     true,
                     response
