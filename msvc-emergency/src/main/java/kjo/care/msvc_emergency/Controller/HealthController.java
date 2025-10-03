@@ -133,4 +133,36 @@ public class HealthController {
         log.info("Total de centros de salud del mes anterior: {}", count);
         return ResponseEntity.ok(new HealthCenterCountDto(count));
     }
+
+    @Operation(summary = "Obtener Centros de Salud cercanos",
+            description = "Devuelve los centros de salud dentro de un radio en km desde la ubicación del usuario")
+    @ApiResponse(responseCode = "200", description = "Centros de Salud cercanos obtenidos correctamente")
+    @ApiResponse(responseCode = "204", description = "No se encontraron Centros de Salud cercanos")
+    @GetMapping("/nearby")
+    public ResponseEntity<ApiResponseDto<List<HealthResponseDto>>> getNearbyHealthCenters(
+            @Parameter(description = "Latitud del usuario", required = true)
+            @RequestParam double lat,
+            @Parameter(description = "Longitud del usuario", required = true)
+            @RequestParam double lon,
+            @Parameter(description = "Distancia de búsqueda en km", required = true, example = "10")
+            @RequestParam @Positive double distanceKm) {
+
+        List<HealthResponseDto> response = healthService.findNearby(lat, lon, distanceKm);
+
+        if (response.isEmpty()) {
+            return ResponseBuilder.buildResponse(
+                    HttpStatus.NO_CONTENT,
+                    "No se encontraron Centros de Salud cercanos",
+                    true,
+                    response
+            );
+        }
+
+        return ResponseBuilder.buildResponse(
+                HttpStatus.OK,
+                "Centros de Salud cercanos obtenidos correctamente",
+                true,
+                response
+        );
+    }
 }
