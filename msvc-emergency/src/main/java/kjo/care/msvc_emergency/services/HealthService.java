@@ -11,6 +11,7 @@ import java.util.UUID;
 public interface HealthService {
     List<HealthResponseDto> findAll();
     List<HealthResponseDto> findAllActive();
+    List<HealthResponseDto> findNearby(double lat, double lon, double distanceKm);
     HealthResponseDto findById(UUID id);
     HealthResponseDto save(HealthRequestDto dto, String userId);
     HealthResponseDto update (UUID id , HealthRequestDto dto, String userId);
