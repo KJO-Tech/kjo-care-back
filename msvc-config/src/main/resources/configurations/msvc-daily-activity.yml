@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: msvc-daily-activity
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://${KEYCLOAK_HOSTNAME:localhost}:9090/realms/${KEYCLOAK_REALM:kjo-care-realm-dev}
+          jwk-set-uri: ${KEYCLOAK_SERVER_URL:http://localhost:9090}/realms/${KEYCLOAK_REALM:kjo-care-realm-dev}/protocol/openid-connect/certs
+          audience: ${KEYCLOAK_CLIENT_ID:kjo-care-client}
+  datasource:
+    url: jdbc:postgresql://localhost:5432/daily_activity
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    url: /v3/api-docs
+    enabled: true
+
+server:
+  port: 9006
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  auth:
+    converter:
+      principal-attribute: preferred_username
+      resource-id: ${KEYCLOAK_CLIENT_ID:kjo-care-client}
