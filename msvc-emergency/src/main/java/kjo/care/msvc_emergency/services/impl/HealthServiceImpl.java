@@ -14,6 +14,7 @@ import kjo.care.msvc_emergency.repositories.EmergencyRepository;
 import kjo.care.msvc_emergency.repositories.HealthRepository;
 import kjo.care.msvc_emergency.services.HealthService;
 import kjo.care.msvc_emergency.services.IUploadImageService;
+import kjo.care.msvc_emergency.utils.Haversine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.access.AccessDeniedException;
@@ -142,4 +143,20 @@ public class HealthServiceImpl implements HealthService {
         }
         return false;
     }
+
+
+
+    @Override
+    public List<HealthResponseDto> findNearby(double lat, double lon, double distanceKm) {
+            List<HealthCenter> allCenters = healthRepository.findAll();
+
+            return allCenters.stream()
+                    .filter(center -> Haversine.distance(
+                            lat, lon,
+                            center.getLatitude(),
+                            center.getLongitude()
+                    ) <= distanceKm)
+                    .map(HealthMapper::toDto)
+                    .toList();
+        }
 }
