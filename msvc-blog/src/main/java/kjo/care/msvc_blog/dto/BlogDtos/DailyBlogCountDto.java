@@ -1,4 +1,4 @@
-package kjo.care.msvc_blog.dto;
+package kjo.care.msvc_blog.dto.BlogDtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;

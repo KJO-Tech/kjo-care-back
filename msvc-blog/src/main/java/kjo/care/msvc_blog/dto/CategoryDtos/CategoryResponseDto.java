@@ -1,4 +1,4 @@
-package kjo.care.msvc_blog.dto;
+package kjo.care.msvc_blog.dto.CategoryDtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

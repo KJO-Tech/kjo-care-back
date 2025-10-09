@@ -1,4 +1,4 @@
-package kjo.care.msvc_blog.dto;
+package kjo.care.msvc_blog.dto.CategoryDtos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

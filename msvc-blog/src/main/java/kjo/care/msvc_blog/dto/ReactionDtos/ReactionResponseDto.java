@@ -1,6 +1,7 @@
-package kjo.care.msvc_blog.dto;
+package kjo.care.msvc_blog.dto.ReactionDtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import kjo.care.msvc_blog.dto.UserInfoDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,8 +1,8 @@
 package kjo.care.msvc_blog.services.Impl;
 
 import kjo.care.msvc_blog.client.UserClient;
-import kjo.care.msvc_blog.dto.ReactionRequestDto;
-import kjo.care.msvc_blog.dto.ReactionResponseDto;
+import kjo.care.msvc_blog.dto.ReactionDtos.ReactionRequestDto;
+import kjo.care.msvc_blog.dto.ReactionDtos.ReactionResponseDto;
 import kjo.care.msvc_blog.dto.UserInfoDto;
 import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Reaction;

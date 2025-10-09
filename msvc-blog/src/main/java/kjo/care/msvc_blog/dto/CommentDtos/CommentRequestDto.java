@@ -1,5 +1,6 @@
-package kjo.care.msvc_blog.dto;
+package kjo.care.msvc_blog.dto.CommentDtos;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +13,14 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReactionRequestDto {
+public class CommentRequestDto {
+
     @NotNull(message = "El blog no puede estar vacío")
     private UUID blogId;
+
+    @NotNull(message = "El contenido no puede estar vacío")
+    private String content;
+
+    @Nullable
+    private UUID commentParentId;
 }

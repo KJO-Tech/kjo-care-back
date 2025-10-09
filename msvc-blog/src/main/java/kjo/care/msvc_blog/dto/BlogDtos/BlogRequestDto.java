@@ -1,4 +1,4 @@
-package kjo.care.msvc_blog.dto;
+package kjo.care.msvc_blog.dto.BlogDtos;
 
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;

@@ -1,31 +1,31 @@
-package kjo.care.msvc_blog.dto;
+package kjo.care.msvc_blog.dto.CommentDtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import kjo.care.msvc_blog.dto.UserInfoDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
-@Builder
+
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
-public class BlogResponseDto {
+@Builder
+public class CommentResponseDto {
     private UUID id;
-    private UserInfoDto author;
-    private CategoryResponseDto category;
-    private String title;
+    private UUID blogId;
+    private UserInfoDto userId;
     private String content;
-    private String video;
-    private String image;
-    private String state;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate publishedDate;
+    private LocalDate commentDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate modifiedDate;
+
+    private Long commentParentId;
 }

@@ -3,6 +3,8 @@ package kjo.care.msvc_blog.services.Impl;
 import kjo.care.msvc_blog.client.UserClient;
 import kjo.care.msvc_blog.dto.*;
 
+import kjo.care.msvc_blog.dto.BlogDtos.*;
+import kjo.care.msvc_blog.dto.CommentDtos.CommentSummaryDto;
 import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Category;
 import kjo.care.msvc_blog.enums.BlogState;

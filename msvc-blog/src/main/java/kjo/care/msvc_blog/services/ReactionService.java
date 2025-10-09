@@ -1,7 +1,7 @@
 package kjo.care.msvc_blog.services;
 
-import kjo.care.msvc_blog.dto.ReactionRequestDto;
-import kjo.care.msvc_blog.dto.ReactionResponseDto;
+import kjo.care.msvc_blog.dto.ReactionDtos.ReactionRequestDto;
+import kjo.care.msvc_blog.dto.ReactionDtos.ReactionResponseDto;
 
 import java.util.List;
 import java.util.UUID;

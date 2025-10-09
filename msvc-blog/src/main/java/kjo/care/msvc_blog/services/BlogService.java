@@ -1,6 +1,6 @@
 package kjo.care.msvc_blog.services;
 
-import kjo.care.msvc_blog.dto.*;
+import kjo.care.msvc_blog.dto.BlogDtos.*;
 
 import java.time.LocalDate;
 import java.util.List;

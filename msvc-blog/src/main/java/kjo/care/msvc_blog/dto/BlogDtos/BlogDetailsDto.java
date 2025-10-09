@@ -1,5 +1,6 @@
-package kjo.care.msvc_blog.dto;
+package kjo.care.msvc_blog.dto.BlogDtos;
 
+import kjo.care.msvc_blog.dto.CommentDtos.CommentSummaryDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
