@@ -222,6 +222,36 @@ services:
     networks:
       - spring-cloud-network
 
+  msvc-notification:
+    build:
+      context: ./msvc-notification
+    container_name: msvc-notification
+    hostname: msvc-notification
+    ports:
+      - "9007:9007"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/notification
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-notification
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - KEYCLOAK_SERVER_URL=${KEYCLOAK_SERVER_URL:-http://keycloak:9090}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-kjo-care-realm-dev}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-kjo-care-client}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - KEYCLOAK_HOSTNAME=${KEYCLOAK_HOSTNAME:-localhost}
+    networks:
+      - spring-cloud-network
+
+
   gateway:
     build:
       context: ./msvc-gateway
@@ -246,6 +276,8 @@ services:
         condition: service_started
       msvc-analytics:
         condition: service_started
+      msvc-notification:
+        condition: service_started
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
@@ -269,6 +301,9 @@ services:
       - SPRING_CLOUD_GATEWAY_ROUTES[4]_ID=msvc-blog
       - SPRING_CLOUD_GATEWAY_ROUTES[4]_URI=lb://msvc-blog
       - SPRING_CLOUD_GATEWAY_ROUTES[4]_PREDICATES[0]=Path=/api/mind/blog/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[6]_ID=msvc-notification
+      - SPRING_CLOUD_GATEWAY_ROUTES[6]_URI=lb://msvc-notification
+      - SPRING_CLOUD_GATEWAY_ROUTES[6]_PREDICATES[0]=Path=/api/mind/notification/**
     networks:
       - spring-cloud-network
 
@@ -324,7 +359,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-keycloak}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_MULTIPLE_DATABASES=blogs,emergency
+      - POSTGRES_MULTIPLE_DATABASES=blogs,emergency,notifications
       - POSTGRES_HOST_AUTH_METHOD=trust  # Añade esta línea para desarrollo
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
