@@ -50,7 +50,7 @@ public class HealthController {
             var response = healthService.findAll(page, size, search);
 
         if (response.isEmpty()){
-            return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Centros de Salud", true, response);
+            return ResponseBuilder.buildResponse(HttpStatus.OK, "No se encontraron los Centros de Salud", true, response);
         }
         return ResponseBuilder.buildResponse(HttpStatus.OK,
                 "Centros de Salud obtenidos correctamente", true, response);
