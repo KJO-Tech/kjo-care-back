@@ -19,4 +19,7 @@ public class CategoryRequestDTO {
 
     @Size(max = 500, message = "La descripción no puede exceder 500 caracteres")
     private String description;
+
+    @Size(max = 500, message = "La URL de la imagen no puede exceder 500 caracteres")
+    private String imageUrl;
 }

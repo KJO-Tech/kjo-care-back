@@ -16,6 +16,7 @@ public class CategoryMapper {
         return Category.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
+                .imageUrl(dto.getImageUrl())
                 .build();
     }
 
@@ -44,6 +45,9 @@ public class CategoryMapper {
         }
         if (dto.getDescription() != null) {
             entity.setDescription(dto.getDescription());
+        }
+        if (dto.getImageUrl() != null) {
+            entity.setImageUrl(dto.getImageUrl());
         }
     }
 }
