@@ -1,5 +1,6 @@
 package kjo.care.msvc_blog.config;
 
+import kjo.care.msvc_blog.utils.NotificationEvent;
 import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -12,6 +13,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Log4j2
@@ -22,20 +24,15 @@ public class StringProducerFactoryConfig {
     private KafkaProperties kafkaProperties;
 
     @Bean
-    public ProducerFactory<String, Object> producerFactory() {
-        Map<String, Object> configs = kafkaProperties.buildProducerProperties(null);
-        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return new DefaultKafkaProducerFactory<>(configs);
+    public ProducerFactory<String, NotificationEvent<?>> producerFactory() {
+        Map<String, Object> configProps = new HashMap<>(kafkaProperties.buildProducerProperties(null));
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        return new DefaultKafkaProducerFactory<>(configProps);
     }
 
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
-        KafkaTemplate<String, Object> template = new KafkaTemplate<>(producerFactory);
-
-        template.setDefaultTopic("notifications");
-
-        log.info("KafkaTemplate configurado exitosamente");
-        return template;
+    public KafkaTemplate<String, NotificationEvent<?>> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
     }
 }

@@ -57,6 +57,36 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notificación LIKE creada para usuario {} por {}", recipientUserId, actorUsername);
     }
 
+    @Override
+    @Transactional
+    public void createCommentNotification(String recipientUserId, String actorUserId, String actorUsername, UUID blogId, UUID commentId) {
+        if (notificationRepository.existsBySourceEventId(commentId)) {
+            log.info("Notificación ya existe para commentId: {}", commentId);
+            return;
+        }
+
+        if (recipientUserId.equals(actorUserId)) {
+            log.info("El usuario {} comentó en su propia publicación, no se crea notificación", actorUserId);
+            return;
+        }
+
+        Notification notification = Notification.builder()
+                .recipientUserId(recipientUserId)
+                .actorUserId(actorUserId)
+                .type(NotificationType.COMMENT)
+                .title("Tu publicación recibió un nuevo comentario")
+                .message(actorUsername + " comentó en tu publicación.")
+                .link("/blogs/" + blogId.toString())
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .sourceEventId(commentId)
+                .metadata(String.format("{\"topic\":\"blog-comments\",\"blogId\":\"%s\"}", blogId))
+                .build();
+
+        notificationRepository.save(notification);
+        log.info("Notificación COMMENT creada para usuario {} por {}", recipientUserId, actorUsername);
+    }
+
 
     @Override
     @Transactional(readOnly = true)

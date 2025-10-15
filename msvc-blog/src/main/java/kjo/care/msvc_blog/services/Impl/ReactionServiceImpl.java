@@ -14,6 +14,7 @@ import kjo.care.msvc_blog.mappers.ReactionMapper;
 import kjo.care.msvc_blog.repositories.BlogRepository;
 import kjo.care.msvc_blog.repositories.ReactionRepository;
 import kjo.care.msvc_blog.services.ReactionService;
+import kjo.care.msvc_blog.utils.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -40,7 +41,7 @@ public class ReactionServiceImpl implements ReactionService {
     private final BlogRepository blogRepository;
     private final UserClient userClient;
     private final ReactionMapper reactionMapper;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, NotificationEvent<?>> kafkaTemplate;
 
     @Override
     @Transactional(readOnly = true)
@@ -69,7 +70,7 @@ public class ReactionServiceImpl implements ReactionService {
         reactionRepository.save(reaction);
 
         if (reaction.getType() == ReactionType.LIKE) {
-            ReactionEventDto event = new ReactionEventDto(
+            ReactionEventDto reactionEvent = new ReactionEventDto(
                     reaction.getId(),
                     reaction.getBlog().getId(),
                     reaction.getBlog().getUserId(),
@@ -79,7 +80,14 @@ public class ReactionServiceImpl implements ReactionService {
                     reaction.getReactionDate(),
                     "msvc-blog"
             );
-            kafkaTemplate.send("blog-reactions", reaction.getBlog().getId().toString(), event);
+
+            NotificationEvent<ReactionEventDto> notificationEvent = new NotificationEvent<>();
+            notificationEvent.setEventType("LIKE");
+            notificationEvent.setPayload(reactionEvent);
+            notificationEvent.setSourceService("msvc-blog");
+
+            kafkaTemplate.send("notifications", notificationEvent);
+            log.info("Evento de reacción enviado para el blog {}", blog.getId());
         }
         return reactionMapper.entityToDto(reaction);
     }

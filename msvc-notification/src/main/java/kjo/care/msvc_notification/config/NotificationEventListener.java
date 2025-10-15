@@ -1,6 +1,7 @@
 package kjo.care.msvc_notification.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kjo.care.msvc_notification.dto.CommentEventDto;
 import kjo.care.msvc_notification.dto.ReactionEventDto;
 import kjo.care.msvc_notification.enums.ReactionType;
 import kjo.care.msvc_notification.services.NotificationService;
@@ -15,7 +16,7 @@ import java.util.LinkedHashMap;
 @Log4j2
 @Component
 @AllArgsConstructor
-public class ReactionEventListener {
+public class NotificationEventListener {
 
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
@@ -28,6 +29,9 @@ public class ReactionEventListener {
         switch (event.getEventType()) {
             case "LIKE":
                 handleReaction((LinkedHashMap<String, Object>) event.getPayload());
+                break;
+            case "COMMENT":
+                handleComment((LinkedHashMap<String, Object>) event.getPayload());
                 break;
             default:
                 log.warn("Tipo de evento no reconocido: {}", event.getEventType());
@@ -55,6 +59,27 @@ public class ReactionEventListener {
             }
         } catch (Exception e) {
             log.error("Error al procesar reacción: {}", e.getMessage(), e);
+        }
+    }
+
+    private void handleComment(LinkedHashMap<String, Object> payload) {
+        try {
+            CommentEventDto commentEvent = objectMapper.convertValue(payload, CommentEventDto.class);
+
+            log.info("Procesando comentario de usuario {} en blog {}",
+                    commentEvent.getCommenterUsername(),
+                    commentEvent.getBlogId());
+
+            notificationService.createCommentNotification(
+                    commentEvent.getBlogAuthorId(),
+                    commentEvent.getCommenterUserId(),
+                    commentEvent.getCommenterUsername(),
+                    commentEvent.getBlogId(),
+                    commentEvent.getCommentId()
+            );
+            log.info("Notificación de COMMENT creada exitosamente para usuario {}", commentEvent.getBlogAuthorId());
+        } catch (Exception e) {
+            log.error("Error al procesar comentario: {}", e.getMessage(), e);
         }
     }
 }
