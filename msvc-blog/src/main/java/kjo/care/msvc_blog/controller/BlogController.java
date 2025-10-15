@@ -45,7 +45,7 @@ public class BlogController {
     public ResponseEntity<ApiResponseDto<List<BlogOverviewDto>>> findAll() {
         List<BlogOverviewDto> response = blogService.findAllBlogs();
         if (response.isEmpty()){
-            return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Blogs", true, response);
+            return ResponseBuilder.buildResponse(HttpStatus.OK, "No se encontraron los Blogs", true, response);
         }
         return ResponseBuilder.buildResponse(HttpStatus.OK, "Blogs obtenidos correctamente", true, response);
     }

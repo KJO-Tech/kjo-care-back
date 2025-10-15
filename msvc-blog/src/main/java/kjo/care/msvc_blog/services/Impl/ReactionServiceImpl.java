@@ -3,6 +3,7 @@ package kjo.care.msvc_blog.services.Impl;
 import kjo.care.msvc_blog.client.UserClient;
 import kjo.care.msvc_blog.dto.ReactionDtos.ReactionRequestDto;
 import kjo.care.msvc_blog.dto.ReactionDtos.ReactionResponseDto;
+import kjo.care.msvc_blog.dto.ReactionEventDto;
 import kjo.care.msvc_blog.dto.UserInfoDto;
 import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Reaction;
@@ -15,6 +16,7 @@ import kjo.care.msvc_blog.repositories.ReactionRepository;
 import kjo.care.msvc_blog.services.ReactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,6 +40,7 @@ public class ReactionServiceImpl implements ReactionService {
     private final BlogRepository blogRepository;
     private final UserClient userClient;
     private final ReactionMapper reactionMapper;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     @Transactional(readOnly = true)
@@ -64,6 +67,20 @@ public class ReactionServiceImpl implements ReactionService {
         reaction.setType(ReactionType.LIKE);
         reaction.setReactionDate(LocalDate.now());
         reactionRepository.save(reaction);
+
+        if (reaction.getType() == ReactionType.LIKE) {
+            ReactionEventDto event = new ReactionEventDto(
+                    reaction.getId(),
+                    reaction.getBlog().getId(),
+                    reaction.getBlog().getUserId(),
+                    reaction.getUserId(),
+                    user.getFirstName(),
+                    reaction.getType(),
+                    reaction.getReactionDate(),
+                    "msvc-blog"
+            );
+            kafkaTemplate.send("blog-reactions", reaction.getBlog().getId().toString(), event);
+        }
         return reactionMapper.entityToDto(reaction);
     }
 
