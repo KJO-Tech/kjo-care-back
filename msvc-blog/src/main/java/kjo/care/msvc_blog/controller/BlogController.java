@@ -129,6 +129,17 @@ public class BlogController {
         return ResponseBuilder.buildResponse(HttpStatus.OK, "Blog eliminado correctamente", true, null);
     }
 
+    @Operation(summary = "Rechazar un blog", description = "Cambia el estado de un blog a RECHAZADO. Solo para administradores.")
+    @ApiResponse(responseCode = "200", description = "Blog rechazado correctamente")
+    @ApiResponse(responseCode = "404", description = "Blog no encontrado")
+    @PutMapping("/{id}/reject")
+    @PreAuthorize("hasRole('admin_client_role')")
+    public ResponseEntity<ApiResponseDto<Object>> rejectBlog(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        String adminId = jwt.getSubject();
+        blogService.rejectBlog(id, adminId);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Blog rechazado correctamente", true, null);
+    }
+
     @Operation(summary = "Obtener cantidad total de blogs", description = "Devuelve el número total de blogs publicados")
     @ApiResponse(responseCode = "200", description = "Conteo obtenido correctamente")
     @GetMapping("/count")

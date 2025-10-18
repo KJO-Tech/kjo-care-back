@@ -5,4 +5,6 @@ public enum NotificationType {
     COMMENT,
     FOLLOW,
     MOOD_ALERT,
+    NEW_BLOG,
+    BLOG_REJECTED
 }

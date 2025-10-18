@@ -62,7 +62,6 @@ public class CommentServiceImpl implements CommentService {
                     .orElseThrow(() -> new EntityNotFoundException("Comentario padre no encontrado"));
         }
 
-
         Comment comment = commentMapper.dtoToEntity(dto);
         comment.setBlog(blog);
         comment.setUserId(userId);
@@ -72,14 +71,20 @@ public class CommentServiceImpl implements CommentService {
         commentRepository.save(comment);
 
         // Crear y enviar evento de comentario
-        CommentEventDto commentEvent = CommentEventDto.builder()
+        CommentEventDto.CommentEventDtoBuilder commentEventBuilder = CommentEventDto.builder()
                 .commentId(comment.getId())
                 .blogId(blog.getId())
                 .blogAuthorId(blog.getUserId())
                 .commenterUserId(userId)
                 .commenterUsername(user.getFirstName())
-                .sourceService("msvc-blog")
-                .build();
+                .sourceService("msvc-blog");
+
+        if (parent != null) {
+            commentEventBuilder.parentCommentId(parent.getId());
+            commentEventBuilder.parentCommentAuthorId(parent.getUserId());
+        }
+
+        CommentEventDto commentEvent = commentEventBuilder.build();
 
         NotificationEvent<CommentEventDto> notificationEvent = new NotificationEvent<>();
         notificationEvent.setEventType("COMMENT");

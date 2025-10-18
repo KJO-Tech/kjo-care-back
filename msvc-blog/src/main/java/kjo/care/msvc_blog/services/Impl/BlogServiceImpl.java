@@ -17,6 +17,7 @@ import kjo.care.msvc_blog.repositories.CommentRepository;
 import kjo.care.msvc_blog.repositories.ReactionRepository;
 import kjo.care.msvc_blog.services.BlogService;
 import kjo.care.msvc_blog.services.IUploadImageService;
+import kjo.care.msvc_blog.utils.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.cache.annotation.Cacheable;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,6 +55,55 @@ public class BlogServiceImpl implements BlogService {
     private final CommentMapper commentMapper;
     private final UserClient userClient;
     private final IUploadImageService uploadService;
+    private final KafkaTemplate<String, NotificationEvent<?>> kafkaTemplate;
+
+    // ... (otros métodos sin cambios)
+
+    @Override
+    @Transactional
+    public BlogResponseDto saveBlog(BlogRequestDto dto, String userId) {
+        UserInfoDto user = userClient.findUserById(userId);
+        Map<String, UserInfoDto> userMap = new HashMap<>();
+        userMap.put(userId, user);
+
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
+
+        Blog blog = blogMapper.dtoToEntity(dto);
+        saveImageOrVideo(dto, blog);
+        blog.setState(BlogState.PUBLICADO);
+        blog.setCategory(category);
+        blog.setUserId(userId);
+        blogRepository.save(blog);
+
+        try {
+            List<UserInfoDto> admins = userClient.findUsersByRole("admin");
+            log.info("Se encontraron {} administradores para notificar.", admins.size());
+
+            for (UserInfoDto admin : admins) {
+                NewBlogEventDto newBlogEvent = NewBlogEventDto.builder()
+                        .recipientId(admin.getId())
+                        .blogId(blog.getId())
+                        .blogTitle(blog.getTitle())
+                        .authorId(userId)
+                        .authorUsername(user.getFirstName())
+                        .sourceService("msvc-blog")
+                        .build();
+
+                NotificationEvent<NewBlogEventDto> notificationEvent = new NotificationEvent<>();
+                notificationEvent.setEventType("NEW_BLOG");
+                notificationEvent.setPayload(newBlogEvent);
+                notificationEvent.setSourceService("msvc-blog");
+
+                kafkaTemplate.send("notifications", notificationEvent);
+                log.info("Evento de nuevo blog enviado para el admin {} sobre el blog {}", admin.getId(), blog.getId());
+            }
+        } catch (Exception e) {
+            log.error("Error al obtener administradores o enviar notificaciones de nuevo blog: {}", e.getMessage(), e);
+        }
+
+        return blogMapper.entityToDto(blog, userMap);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -133,24 +184,6 @@ public class BlogServiceImpl implements BlogService {
                 .build();
     }
 
-    @Override
-    @Transactional
-    public BlogResponseDto saveBlog(BlogRequestDto dto, String userId) {
-        UserInfoDto user = userClient.findUserById(userId);
-        Map<String, UserInfoDto> userMap = new HashMap<>();
-        userMap.put(userId, user);
-
-        Category category = categoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
-
-        Blog blog = blogMapper.dtoToEntity(dto);
-        saveImageOrVideo(dto, blog);
-        blog.setState(BlogState.PUBLICADO);
-        blog.setCategory(category);
-        blog.setUserId(userId);
-        blogRepository.save(blog);
-        return blogMapper.entityToDto(blog, userMap);
-    }
 
     @Override
     @Transactional
@@ -189,6 +222,29 @@ public class BlogServiceImpl implements BlogService {
 
         blog.setState(BlogState.ELIMINADO);
         blogRepository.save(blog);
+    }
+
+    @Override
+    @Transactional
+    public void rejectBlog(UUID id, String adminId) {
+        Blog blog = findExistBlog(id);
+        blog.setState(BlogState.ELIMINADO);
+        blogRepository.save(blog);
+
+        BlogRejectedEventDto rejectedEvent = BlogRejectedEventDto.builder()
+                .blogId(blog.getId())
+                .blogTitle(blog.getTitle())
+                .authorId(blog.getUserId())
+                .sourceService("msvc-blog")
+                .build();
+
+        NotificationEvent<BlogRejectedEventDto> notificationEvent = new NotificationEvent<>();
+        notificationEvent.setEventType("BLOG_REJECTED");
+        notificationEvent.setPayload(rejectedEvent);
+        notificationEvent.setSourceService("msvc-blog");
+
+        kafkaTemplate.send("notifications", notificationEvent);
+        log.info("Evento de blog rechazado enviado para el blog {}", blog.getId());
     }
 
     @Override

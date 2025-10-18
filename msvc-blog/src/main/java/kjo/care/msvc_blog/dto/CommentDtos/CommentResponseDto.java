@@ -27,5 +27,5 @@ public class CommentResponseDto {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate modifiedDate;
 
-    private Long commentParentId;
+    private UUID commentParentId;
 }

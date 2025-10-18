@@ -11,13 +11,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CommentEventDto {
-    private UUID commentId;
+public class NewBlogEventDto {
+    private String recipientId;
     private UUID blogId;
-    private String blogAuthorId;
-    private String commenterUserId;
-    private String commenterUsername;
-    private UUID parentCommentId;
-    private String parentCommentAuthorId;
+    private String blogTitle;
+    private String authorId;
+    private String authorUsername;
     private String sourceService;
 }

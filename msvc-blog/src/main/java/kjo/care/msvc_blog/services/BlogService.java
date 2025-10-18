@@ -15,6 +15,7 @@ public interface BlogService {
     BlogResponseDto saveBlog(BlogRequestDto dto, String userId);
     BlogResponseDto updateBlog (UUID id , BlogRequestDto dto, String authenticatedUserId);
     void deleteBlog(UUID id,  String authenticatedUserId);
+    void rejectBlog(UUID id, String adminId);
     Long countBlogs();
     Long countBlogsPreviousMonth();
     List<Object[]> countBlogsByDayBetweenDates(String state, LocalDate startDate, LocalDate endDate);

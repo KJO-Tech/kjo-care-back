@@ -1,6 +1,7 @@
 package kjo.care.msvc_notification.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,13 +10,12 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentEventDto {
-    private UUID commentId;
+@Builder
+public class NewBlogEventDto {
+    private String recipientId;
     private UUID blogId;
-    private String blogAuthorId;
-    private String commenterUserId;
-    private String commenterUsername;
-    private UUID parentCommentId;
-    private String parentCommentAuthorId;
+    private String blogTitle;
+    private String authorId;
+    private String authorUsername;
     private String sourceService;
 }

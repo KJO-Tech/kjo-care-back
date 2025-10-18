@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "notification", uniqueConstraints = @UniqueConstraint(columnNames = {"sourceEventId"}))
+@Table(name = "notification", uniqueConstraints = @UniqueConstraint(columnNames = {"sourceEventId", "type", "recipientUserId"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

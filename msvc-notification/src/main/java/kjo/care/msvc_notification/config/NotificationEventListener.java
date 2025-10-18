@@ -1,8 +1,7 @@
 package kjo.care.msvc_notification.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kjo.care.msvc_notification.dto.CommentEventDto;
-import kjo.care.msvc_notification.dto.ReactionEventDto;
+import kjo.care.msvc_notification.dto.*;
 import kjo.care.msvc_notification.enums.ReactionType;
 import kjo.care.msvc_notification.services.NotificationService;
 import kjo.care.msvc_notification.utils.NotificationEvent;
@@ -24,62 +23,59 @@ public class NotificationEventListener {
     @KafkaListener(topics = "notifications", groupId = "notification-group",
             containerFactory = "validMessageContainerFactory")
     public void consume(NotificationEvent<?> event) {
-        log.info("Evento recibido desde {}: tipo {}", event.getSourceService(), event.getEventType());
+        if (event == null || event.getEventType() == null) {
+            log.error("Evento de Kafka nulo o sin tipo. El mensaje podría estar corrupto.");
+            return;
+        }
 
-        switch (event.getEventType()) {
-            case "LIKE":
-                handleReaction((LinkedHashMap<String, Object>) event.getPayload());
-                break;
-            case "COMMENT":
-                handleComment((LinkedHashMap<String, Object>) event.getPayload());
-                break;
-            default:
-                log.warn("Tipo de evento no reconocido: {}", event.getEventType());
+        log.info("Evento [{}] recibido. Procesando...", event.getEventType());
+
+        try {
+            switch (event.getEventType()) {
+                case "LIKE":
+                    handleReaction((LinkedHashMap<String, Object>) event.getPayload());
+                    break;
+                case "COMMENT":
+                    handleComment((LinkedHashMap<String, Object>) event.getPayload());
+                    break;
+                case "NEW_BLOG":
+                    handleNewBlog((LinkedHashMap<String, Object>) event.getPayload());
+                    break;
+                case "BLOG_REJECTED":
+                    handleBlogRejected((LinkedHashMap<String, Object>) event.getPayload());
+                    break;
+                default:
+                    log.warn("Tipo de evento no reconocido: [{}].", event.getEventType());
+            }
+        } catch (Exception e) {
+            log.error("Error fatal al procesar el evento de tipo [{}]. Causa: {}", event.getEventType(), e.getMessage(), e);
         }
     }
 
     private void handleReaction(LinkedHashMap<String, Object> payload) {
-        try {
-            ReactionEventDto reactionEvent = objectMapper.convertValue(payload, ReactionEventDto.class);
-
-            log.info("Procesando reacción: {} de usuario {} en blog {}",
-                    reactionEvent.getType(),
-                    reactionEvent.getReactorUsername(),
-                    reactionEvent.getBlogId());
-
-            if (reactionEvent.getType() == ReactionType.LIKE) {
-                notificationService.createLikeNotification(
-                        reactionEvent.getBlogAuthorId(),
-                        reactionEvent.getReactorUserId(),
-                        reactionEvent.getReactorUsername(),
-                        reactionEvent.getBlogId(),
-                        reactionEvent.getReactionId()
-                );
-                log.info("Notificación de LIKE creada exitosamente para usuario {}", reactionEvent.getBlogAuthorId());
-            }
-        } catch (Exception e) {
-            log.error("Error al procesar reacción: {}", e.getMessage(), e);
+        ReactionEventDto reactionEvent = objectMapper.convertValue(payload, ReactionEventDto.class);
+        if (reactionEvent.getType() == ReactionType.LIKE) {
+            notificationService.createLikeNotification(reactionEvent);
         }
     }
 
     private void handleComment(LinkedHashMap<String, Object> payload) {
-        try {
-            CommentEventDto commentEvent = objectMapper.convertValue(payload, CommentEventDto.class);
+        CommentEventDto commentEvent = objectMapper.convertValue(payload, CommentEventDto.class);
 
-            log.info("Procesando comentario de usuario {} en blog {}",
-                    commentEvent.getCommenterUsername(),
-                    commentEvent.getBlogId());
+        notificationService.createCommentNotification(commentEvent);
 
-            notificationService.createCommentNotification(
-                    commentEvent.getBlogAuthorId(),
-                    commentEvent.getCommenterUserId(),
-                    commentEvent.getCommenterUsername(),
-                    commentEvent.getBlogId(),
-                    commentEvent.getCommentId()
-            );
-            log.info("Notificación de COMMENT creada exitosamente para usuario {}", commentEvent.getBlogAuthorId());
-        } catch (Exception e) {
-            log.error("Error al procesar comentario: {}", e.getMessage(), e);
+        if (commentEvent.getParentCommentAuthorId() != null) {
+            notificationService.createCommentReplyNotification(commentEvent);
         }
+    }
+
+    private void handleNewBlog(LinkedHashMap<String, Object> payload) {
+        NewBlogEventDto newBlogEvent = objectMapper.convertValue(payload, NewBlogEventDto.class);
+        notificationService.createNewBlogNotification(newBlogEvent);
+    }
+
+    private void handleBlogRejected(LinkedHashMap<String, Object> payload) {
+        BlogRejectedEventDto rejectedEvent = objectMapper.convertValue(payload, BlogRejectedEventDto.class);
+        notificationService.createBlogRejectedNotification(rejectedEvent);
     }
 }
