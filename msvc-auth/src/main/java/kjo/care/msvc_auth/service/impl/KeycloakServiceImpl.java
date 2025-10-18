@@ -2,6 +2,7 @@ package kjo.care.msvc_auth.service.impl;
 
 
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import kjo.care.msvc_auth.dto.UserDTO;
 import kjo.care.msvc_auth.dto.UserInfoDto;
@@ -13,6 +14,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.RoleResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -95,6 +97,26 @@ public class KeycloakServiceImpl implements IKeycloakService {
                 .map(this::findUserById)
                 .filter(Objects::nonNull)
                 .toList();
+    }
+
+    @Override
+    public List<UserInfoDto> findUsersByRole(String roleName) {
+        try {
+            RoleResource roleResource = keycloakProvider.getRealmResource().roles().get(roleName);
+            Set<UserRepresentation> userRepresentations = roleResource.getRoleUserMembers();
+
+            return userRepresentations.stream()
+                    .map(userRep -> UserInfoDto.builder()
+                            .id(userRep.getId())
+                            .username(userRep.getUsername())
+                            .firstName(userRep.getFirstName())
+                            .lastName(userRep.getLastName())
+                            .build())
+                    .collect(Collectors.toList());
+        } catch (NotFoundException e) {
+            log.warn("Rol '{}' no encontrado", roleName);
+            return Collections.emptyList();
+        }
     }
 
     @Override
@@ -266,5 +288,6 @@ public class KeycloakServiceImpl implements IKeycloakService {
             }
         }
     }
+
 
 }

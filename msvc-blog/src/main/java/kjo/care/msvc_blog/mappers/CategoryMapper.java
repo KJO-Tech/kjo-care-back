@@ -1,7 +1,7 @@
 package kjo.care.msvc_blog.mappers;
 
-import kjo.care.msvc_blog.dto.CategoryRequestDto;
-import kjo.care.msvc_blog.dto.CategoryResponseDto;
+import kjo.care.msvc_blog.dto.CategoryDtos.CategoryRequestDto;
+import kjo.care.msvc_blog.dto.CategoryDtos.CategoryResponseDto;
 import kjo.care.msvc_blog.entities.Category;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;

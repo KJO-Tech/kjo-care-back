@@ -1,6 +1,6 @@
 package kjo.care.msvc_blog.services;
 
-import kjo.care.msvc_blog.dto.*;
+import kjo.care.msvc_blog.dto.BlogDtos.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,6 +15,7 @@ public interface BlogService {
     BlogResponseDto saveBlog(BlogRequestDto dto, String userId);
     BlogResponseDto updateBlog (UUID id , BlogRequestDto dto, String authenticatedUserId);
     void deleteBlog(UUID id,  String authenticatedUserId);
+    void rejectBlog(UUID id, String adminId);
     Long countBlogs();
     Long countBlogsPreviousMonth();
     List<Object[]> countBlogsByDayBetweenDates(String state, LocalDate startDate, LocalDate endDate);

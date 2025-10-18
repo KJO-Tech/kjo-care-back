@@ -66,6 +66,12 @@ public class AuthController {
         return ResponseEntity.ok(keycloakService.findUsersByIds(userId));
     }
 
+    @GetMapping("/role/{roleName}")
+    public ResponseEntity<List<UserInfoDto>> findUsersByRole(@PathVariable String roleName) {
+        List<UserInfoDto> users = keycloakService.findUsersByRole(roleName);
+        return ResponseEntity.ok(users);
+    }
+
     @PostMapping("/register")
     public ResponseEntity<?> createUser(@RequestBody UserDTO userDTO) throws URISyntaxException {
         String message = keycloakService.createUser(userDTO);

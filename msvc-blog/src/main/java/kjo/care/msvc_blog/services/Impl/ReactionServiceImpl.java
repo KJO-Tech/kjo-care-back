@@ -1,8 +1,9 @@
 package kjo.care.msvc_blog.services.Impl;
 
 import kjo.care.msvc_blog.client.UserClient;
-import kjo.care.msvc_blog.dto.ReactionRequestDto;
-import kjo.care.msvc_blog.dto.ReactionResponseDto;
+import kjo.care.msvc_blog.dto.ReactionDtos.ReactionRequestDto;
+import kjo.care.msvc_blog.dto.ReactionDtos.ReactionResponseDto;
+import kjo.care.msvc_blog.dto.ReactionEventDto;
 import kjo.care.msvc_blog.dto.UserInfoDto;
 import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Reaction;
@@ -13,8 +14,10 @@ import kjo.care.msvc_blog.mappers.ReactionMapper;
 import kjo.care.msvc_blog.repositories.BlogRepository;
 import kjo.care.msvc_blog.repositories.ReactionRepository;
 import kjo.care.msvc_blog.services.ReactionService;
+import kjo.care.msvc_blog.utils.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,6 +41,7 @@ public class ReactionServiceImpl implements ReactionService {
     private final BlogRepository blogRepository;
     private final UserClient userClient;
     private final ReactionMapper reactionMapper;
+    private final KafkaTemplate<String, NotificationEvent<?>> kafkaTemplate;
 
     @Override
     @Transactional(readOnly = true)
@@ -64,6 +68,27 @@ public class ReactionServiceImpl implements ReactionService {
         reaction.setType(ReactionType.LIKE);
         reaction.setReactionDate(LocalDate.now());
         reactionRepository.save(reaction);
+
+        if (reaction.getType() == ReactionType.LIKE) {
+            ReactionEventDto reactionEvent = new ReactionEventDto(
+                    reaction.getId(),
+                    reaction.getBlog().getId(),
+                    reaction.getBlog().getUserId(),
+                    reaction.getUserId(),
+                    user.getFirstName(),
+                    reaction.getType(),
+                    reaction.getReactionDate(),
+                    "msvc-blog"
+            );
+
+            NotificationEvent<ReactionEventDto> notificationEvent = new NotificationEvent<>();
+            notificationEvent.setEventType("LIKE");
+            notificationEvent.setPayload(reactionEvent);
+            notificationEvent.setSourceService("msvc-blog");
+
+            kafkaTemplate.send("notifications", notificationEvent);
+            log.info("Evento de reacción enviado para el blog {}", blog.getId());
+        }
         return reactionMapper.entityToDto(reaction);
     }
 

@@ -9,11 +9,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
-@FeignClient(name = "msvc-auth")
+@FeignClient(name = "msvc-auth", path = "/users")
 public interface UserClient {
-    @GetMapping("/users/{userId}")
+    @GetMapping("/{userId}")
     UserInfoDto findUserById(@PathVariable("userId") String userId);
 
-    @PostMapping("/users/batch")
+    @PostMapping("/batch")
     List<UserInfoDto> findUsersByIds(@RequestBody List<String> userIds);
+
+    @GetMapping("/role/{roleName}")
+    List<UserInfoDto> findUsersByRole(@PathVariable("roleName") String roleName);
 }
