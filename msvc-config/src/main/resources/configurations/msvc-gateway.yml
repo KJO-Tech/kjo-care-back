@@ -63,3 +63,9 @@ spring:
             - Path=/api/mind/daily-activity/**
           filters:
             - StripPrefix=3
+        - id: msvc-notification
+          uri: lb://msvc-notification
+          predicates:
+            - Path=/api/mind/notification/**
+          filters:
+            - StripPrefix=3

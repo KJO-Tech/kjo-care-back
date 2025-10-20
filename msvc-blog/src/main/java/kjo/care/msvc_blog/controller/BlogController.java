@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Positive;
 import kjo.care.msvc_blog.dto.*;
+import kjo.care.msvc_blog.dto.BlogDtos.*;
 import kjo.care.msvc_blog.services.BlogService;
 import kjo.care.msvc_blog.utils.ResponseBuilder;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +45,7 @@ public class BlogController {
     public ResponseEntity<ApiResponseDto<List<BlogOverviewDto>>> findAll() {
         List<BlogOverviewDto> response = blogService.findAllBlogs();
         if (response.isEmpty()){
-            return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Blogs", true, response);
+            return ResponseBuilder.buildResponse(HttpStatus.OK, "No se encontraron los Blogs", true, response);
         }
         return ResponseBuilder.buildResponse(HttpStatus.OK, "Blogs obtenidos correctamente", true, response);
     }
@@ -127,6 +127,17 @@ public class BlogController {
         String authenticatedUserId = jwt.getSubject();
         blogService.deleteBlog(id, authenticatedUserId);
         return ResponseBuilder.buildResponse(HttpStatus.OK, "Blog eliminado correctamente", true, null);
+    }
+
+    @Operation(summary = "Rechazar un blog", description = "Cambia el estado de un blog a RECHAZADO. Solo para administradores.")
+    @ApiResponse(responseCode = "200", description = "Blog rechazado correctamente")
+    @ApiResponse(responseCode = "404", description = "Blog no encontrado")
+    @PutMapping("/{id}/reject")
+    @PreAuthorize("hasRole('admin_client_role')")
+    public ResponseEntity<ApiResponseDto<Object>> rejectBlog(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        String adminId = jwt.getSubject();
+        blogService.rejectBlog(id, adminId);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Blog rechazado correctamente", true, null);
     }
 
     @Operation(summary = "Obtener cantidad total de blogs", description = "Devuelve el número total de blogs publicados")
