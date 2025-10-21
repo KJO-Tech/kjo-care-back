@@ -8,6 +8,7 @@ import kjo.care.msvc_notification.repositories.NotificationRepository;
 import kjo.care.msvc_notification.services.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -23,6 +24,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationMapper notificationMapper;
     private final NotificationRepository notificationRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     @Transactional
@@ -50,8 +52,17 @@ public class NotificationServiceImpl implements NotificationService {
                 .metadata(String.format("{\"topic\":\"blog-reactions\",\"blogId\":\"%s\"}", event.getBlogId()))
                 .build();
 
-        notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.save(notification);
         log.info("Notificación LIKE creada para usuario {}.", event.getBlogAuthorId());
+
+        String userId = savedNotification.getRecipientUserId();
+        String destination = "/queue/notifications";
+        messagingTemplate.convertAndSendToUser(
+            userId,
+            destination,
+            notificationMapper.toDto(savedNotification)
+        );
+        log.info("Notificación LIKE enviada por WebSocket al usuario {}.", userId);
     }
 
     @Override
@@ -80,8 +91,17 @@ public class NotificationServiceImpl implements NotificationService {
                 .metadata(String.format("{\"topic\":\"blog-comments\",\"blogId\":\"%s\"}", event.getBlogId()))
                 .build();
 
-        notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.save(notification);
         log.info("Notificación COMMENT creada para usuario {}.", event.getBlogAuthorId());
+
+        String userId = savedNotification.getRecipientUserId();
+        String destination = "/queue/notifications";
+        messagingTemplate.convertAndSendToUser(
+            userId,
+            destination,
+            notificationMapper.toDto(savedNotification)
+        );
+        log.info("Notificación COMMENT enviada por WebSocket al usuario {}.", userId);
     }
 
     @Override
@@ -110,8 +130,17 @@ public class NotificationServiceImpl implements NotificationService {
                 .metadata(String.format("{\"topic\":\"blog-comments\",\"blogId\":\"%s\"}", event.getBlogId()))
                 .build();
 
-        notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.save(notification);
         log.info("Notificación de respuesta a comentario creada para usuario {}.", event.getParentCommentAuthorId());
+
+        String userId = savedNotification.getRecipientUserId();
+        String destination = "/queue/notifications";
+        messagingTemplate.convertAndSendToUser(
+            userId,
+            destination,
+            notificationMapper.toDto(savedNotification)
+        );
+        log.info("Notificación de respuesta a comentario enviada por WebSocket al usuario {}.", userId);
     }
 
     @Override
@@ -135,8 +164,18 @@ public class NotificationServiceImpl implements NotificationService {
                 .metadata(String.format("{\"topic\":\"new-blogs\",\"blogId\":\"%s\"}", event.getBlogId()))
                 .build();
 
-        notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.save(notification);
         log.info("Notificación de NUEVO BLOG guardada para el administrador {}.", event.getRecipientId());
+
+        String userId = savedNotification.getRecipientUserId();
+        String destination = "/queue/notifications-" + userId;
+
+        messagingTemplate.convertAndSend(
+                destination,
+                notificationMapper.toDto(savedNotification)
+        );
+
+        log.info("Notificación de NUEVO BLOG enviada por WebSocket al destino {}.", destination);
     }
 
     @Override
@@ -160,8 +199,17 @@ public class NotificationServiceImpl implements NotificationService {
                 .metadata(String.format("{\"topic\":\"blog-rejected\",\"blogId\":\"%s\"}", event.getBlogId()))
                 .build();
 
-        notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.save(notification);
         log.info("Notificación de BLOG RECHAZADO guardada para el usuario {}.", event.getAuthorId());
+
+        String userId = savedNotification.getRecipientUserId();
+        String destination = "/queue/notifications";
+        messagingTemplate.convertAndSendToUser(
+            userId,
+            destination,
+            notificationMapper.toDto(savedNotification)
+        );
+        log.info("Notificación de BLOG RECHAZADO enviada por WebSocket al usuario {}.", userId);
     }
 
     @Override

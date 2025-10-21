@@ -49,5 +49,5 @@ eureka:
 jwt:
   auth:
     converter:
-      principal-attribute: preferred_username
+      principal-attribute: sub
       resource-id: ${KEYCLOAK_CLIENT_ID:kjo-care-client}
