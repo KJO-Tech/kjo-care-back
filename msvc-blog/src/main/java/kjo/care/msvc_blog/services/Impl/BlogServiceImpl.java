@@ -109,7 +109,8 @@ public class BlogServiceImpl implements BlogService {
     @Transactional(readOnly = true)
     public List<BlogOverviewDto> findAllBlogs() {
         List<Blog> blogs = blogRepository.findAllWithCategory();
-        return processBlogsAndBuildOverviews(blogs);
+        // Este método no tiene userId, por lo que hasLiked siempre será false
+        return processBlogsAndBuildOverviews(blogs, null);
     }
 
     @Override
@@ -121,12 +122,12 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Transactional(readOnly = true)
-    public BlogPageResponseDto findBlogs(int page, int size) {
+    public BlogPageResponseDto findBlogs(int page, int size, String userId) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("publishedDate").descending());
         Page<Blog> publishedBlogsPage = blogRepository.findByStateWithCategory(BlogState.PUBLICADO, pageable);
         List<Blog> publishedBlogs = publishedBlogsPage.getContent();
 
-        List<BlogOverviewDto> blogOverviews = processBlogsAndBuildOverviews(publishedBlogs);
+        List<BlogOverviewDto> blogOverviews = processBlogsAndBuildOverviews(publishedBlogs, userId);
 
         return new BlogPageResponseDto(
                 blogOverviews,
@@ -150,7 +151,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "blogs", key = "#id")
-    public BlogDetailsDto findBlogDetails(UUID id) {
+    public BlogDetailsDto findBlogDetails(UUID id, String userId) {
         Blog blog = findExistBlog(id);
 
         List<Blog> singleBlogList = List.of(blog);
@@ -170,6 +171,9 @@ public class BlogServiceImpl implements BlogService {
         Long reactionCount = reactionRepository.countByBlogId(blog.getId());
         Long commentCount = commentRepository.countByBlogId(blog.getId());
 
+        boolean hasReaction = reactionRepository.existsByUserIdAndBlogId(userId, id);
+
+
         List<CommentSummaryDto> comments = commentRepository.findByBlogIdAndParentIsNull(blog.getId())
                 .stream()
                 .map(commentMapper::mapComment)
@@ -181,6 +185,7 @@ public class BlogServiceImpl implements BlogService {
                 .commentCount(commentCount)
                 .comments(comments)
                 .accessible(isPublished)
+                .hasLiked(hasReaction)
                 .build();
     }
 
@@ -345,15 +350,17 @@ public class BlogServiceImpl implements BlogService {
         }
     }
 
-    private List<BlogOverviewDto> processBlogsAndBuildOverviews(List<Blog> blogs) {
+    private List<BlogOverviewDto> processBlogsAndBuildOverviews(List<Blog> blogs, String userId) {
         List<UUID> blogIds = blogs.stream().map(Blog::getId).toList();
         Map<UUID, Long> reactionCounts = getReactionCounts(blogIds);
         Map<UUID, Long> commentCounts = getCommentCounts(blogIds);
 
+        Set<UUID> likedBlogIds = (userId != null) ? reactionRepository.findLikedBlogIdsByUserIdAndBlogIds(userId, blogIds) : Collections.emptySet();
+
         List<BlogResponseDto> blogDtos = blogMapper.entitiesToDtos(blogs, fetchUsersForBlogs(blogs));
 
         return blogDtos.stream()
-                .map(dto -> buildBlogOverview(dto, reactionCounts, commentCounts))
+                .map(dto -> buildBlogOverview(dto, reactionCounts, commentCounts, likedBlogIds))
                 .toList();
     }
 
@@ -369,11 +376,12 @@ public class BlogServiceImpl implements BlogService {
                 .toList();
     }
 
-    private BlogOverviewDto buildBlogOverview(BlogResponseDto dto, Map<UUID, Long> reactionCounts, Map<UUID, Long> commentCounts) {
+    private BlogOverviewDto buildBlogOverview(BlogResponseDto dto, Map<UUID, Long> reactionCounts, Map<UUID, Long> commentCounts, Set<UUID> likedBlogIds) {
         return BlogOverviewDto.builder()
                 .blog(dto)
                 .reactionCount(reactionCounts.getOrDefault(dto.getId(), 0L))
                 .commentCount(commentCounts.getOrDefault(dto.getId(), 0L))
+                .hasLiked(likedBlogIds.contains(dto.getId()))
                 .build();
     }
 

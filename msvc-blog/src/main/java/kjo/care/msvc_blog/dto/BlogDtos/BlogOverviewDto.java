@@ -13,4 +13,5 @@ public class BlogOverviewDto {
     private BlogResponseDto blog;
     private Long reactionCount;
     private Long commentCount;
+    private boolean hasLiked;
 }
