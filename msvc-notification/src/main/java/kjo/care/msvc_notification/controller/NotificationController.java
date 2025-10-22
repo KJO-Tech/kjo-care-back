@@ -15,11 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/notification")
@@ -47,6 +46,15 @@ public class NotificationController {
 
         log.info("Found {} notifications for user: {}", notifications.size(), userId);
         return ResponseBuilder.buildResponse(HttpStatus.OK, "Notificaciones obtenidas correctamente", true, notifications);
+    }
+
+    @Operation(summary = "Leer una Notificación", description = "Marca una Notificación como leída")
+    @ApiResponse(responseCode = "200", description = "Notificacion leída correctamente")
+    @ApiResponse(responseCode = "404", description = "Notificación no encontrada")
+    @PutMapping("/{notificationId}")
+    public ResponseEntity<ApiResponseDto<NotificationResponseDto>> readNotification(UUID notificationId) {
+        NotificationResponseDto notification = notificationService.readNotification(notificationId);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Notificación leída correctamente", true, notification);
     }
 
 }
