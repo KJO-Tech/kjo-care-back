@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -20,5 +21,8 @@ public interface ReactionRepository extends JpaRepository<Reaction, UUID> {
 
     @Query("SELECT COUNT(r) FROM Reaction r WHERE r.blog.id = :blogId")
     Long countByBlogId(@Param("blogId") UUID blogId);
+
+    @Query("SELECT r.blog.id FROM Reaction r WHERE r.userId = :userId AND r.blog.id IN :blogIds")
+    Set<UUID> findLikedBlogIdsByUserIdAndBlogIds(@Param("userId") String userId, @Param("blogIds") List<UUID> blogIds);
 
 }
