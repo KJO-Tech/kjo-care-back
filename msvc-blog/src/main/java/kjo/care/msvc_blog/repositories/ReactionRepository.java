@@ -16,7 +16,7 @@ public interface ReactionRepository extends JpaRepository<Reaction, UUID> {
     boolean existsByUserIdAndBlogId(String userId, UUID blogId);
     Optional<Reaction> findByUserIdAndBlogId(String userId, UUID blogId);
 
-    @Query("SELECT c.blog.id, COUNT(c) FROM Comment c WHERE c.blog.id IN :blogIds GROUP BY c.blog.id")
+    @Query("SELECT r.blog.id, COUNT(r) FROM Reaction r WHERE r.blog.id IN :blogIds GROUP BY r.blog.id")
     List<Object[]> countByBlogIds(@Param("blogIds") List<UUID> blogIds);
 
     @Query("SELECT COUNT(r) FROM Reaction r WHERE r.blog.id = :blogId")
