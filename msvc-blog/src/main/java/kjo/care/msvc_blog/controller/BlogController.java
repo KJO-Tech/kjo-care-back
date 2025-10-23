@@ -68,8 +68,10 @@ public class BlogController {
     @GetMapping("")
     public ResponseEntity<ApiResponseDto<BlogPageResponseDto>> getAllPublishedBlogs(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        BlogPageResponseDto response = blogService.findBlogs(page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal Jwt jwt) {
+        String userId = (jwt != null) ? jwt.getSubject() : null;
+        BlogPageResponseDto response = blogService.findBlogs(page, size, userId);
         if (response.dto().isEmpty()){
             return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Blogs publicados", true, response);
         }
@@ -89,8 +91,9 @@ public class BlogController {
     @ApiResponse(responseCode = "200", description = "Detalles obtenidos correctamente")
     @ApiResponse(responseCode = "404", description = "Detalles no encontrados")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDto<BlogDetailsDto>> getDetailsById(@PathVariable UUID id) {
-        BlogDetailsDto response = blogService.findBlogDetails(id);
+    public ResponseEntity<ApiResponseDto<BlogDetailsDto>> getDetailsById(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        BlogDetailsDto response = blogService.findBlogDetails(id, userId);
         return ResponseBuilder.buildResponse(HttpStatus.OK, "Detalles del blog obtenidos correctamente", true, response);
     }
 

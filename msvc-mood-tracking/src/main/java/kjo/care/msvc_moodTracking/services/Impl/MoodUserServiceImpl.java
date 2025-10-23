@@ -68,7 +68,7 @@ public class MoodUserServiceImpl implements MoodUserService {
     @Override
     public Flux<UserMoodDTO> getCurrentUserMoods(String userId) {
         log.info("Obteniendo estados de animo del usuario : {}", userId);
-        return Mono.fromCallable(() -> moodUserRepository.findByUserIdWithMood(userId))
+        return Mono.fromCallable(() -> moodUserRepository.findByUserIdWithMoodOrderByCreatedAtDesc(userId))
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMapMany(Flux::fromIterable)
                 .flatMap(moodUser -> getUserById(userId)

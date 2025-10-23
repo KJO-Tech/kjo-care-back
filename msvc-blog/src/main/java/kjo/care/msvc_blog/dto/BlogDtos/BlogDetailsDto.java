@@ -18,4 +18,5 @@ public class BlogDetailsDto {
     private Long commentCount;
     private List<CommentSummaryDto> comments;
     private boolean accessible;
+    private boolean hasLiked;
 }

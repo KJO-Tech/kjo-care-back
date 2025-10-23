@@ -9,9 +9,9 @@ import java.util.UUID;
 public interface BlogService {
     List<BlogOverviewDto> findAllBlogs();
     List<BlogResponseDto> findAllBlogsPublished();
-    BlogPageResponseDto findBlogs(int page, int size);
+    BlogPageResponseDto findBlogs(int page, int size, String userId);
     BlogResponseDto findBlogById(UUID id);
-    BlogDetailsDto findBlogDetails(UUID id);
+    BlogDetailsDto findBlogDetails(UUID id, String userId);
     BlogResponseDto saveBlog(BlogRequestDto dto, String userId);
     BlogResponseDto updateBlog (UUID id , BlogRequestDto dto, String authenticatedUserId);
     void deleteBlog(UUID id,  String authenticatedUserId);

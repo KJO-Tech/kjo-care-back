@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Log4j2
@@ -167,9 +168,19 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional(readOnly = true)
     public List<NotificationResponseDto> getNotificationsForUser(String userId) {
-        return notificationRepository.findByRecipientUserId(userId)
+        return notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(notificationMapper::toDto)
                 .toList();
+    }
+
+    @Override
+    public NotificationResponseDto readNotification(UUID notificationId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notificación no encontrada"));
+
+        notification.setRead(true);
+        notificationRepository.save(notification);
+        return notificationMapper.toDto(notification);
     }
 }
