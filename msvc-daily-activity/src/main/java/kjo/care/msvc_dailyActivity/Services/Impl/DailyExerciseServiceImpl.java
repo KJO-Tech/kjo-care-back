@@ -5,17 +5,21 @@ import kjo.care.msvc_dailyActivity.DTOs.DailyExerciseRequestDTO;
 import kjo.care.msvc_dailyActivity.DTOs.DailyExerciseResponseDTO;
 import kjo.care.msvc_dailyActivity.Entities.Category;
 import kjo.care.msvc_dailyActivity.Entities.DailyExercise;
+import kjo.care.msvc_dailyActivity.Entities.UserDailyActivity;
 import kjo.care.msvc_dailyActivity.Enums.ExerciseContentType;
 import kjo.care.msvc_dailyActivity.Enums.ExerciseDifficultyType;
 import kjo.care.msvc_dailyActivity.Exceptions.ResourceNotFoundException;
 import kjo.care.msvc_dailyActivity.Mappers.DailyExerciseMapper;
 import kjo.care.msvc_dailyActivity.Repositories.CategoryRepository;
 import kjo.care.msvc_dailyActivity.Repositories.DailyExerciseRepository;
+import kjo.care.msvc_dailyActivity.Repositories.UserDailyActivityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -27,7 +31,39 @@ public class DailyExerciseServiceImpl implements IDailyExerciseService {
 
     private final DailyExerciseRepository dailyExerciseRepository;
     private final CategoryRepository categoryRepository;
+    private final UserDailyActivityRepository userDailyActivityRepository;
     private final DailyExerciseMapper dailyExerciseMapper;
+
+    @Override
+    @Transactional
+    public List<DailyExerciseResponseDTO> getOrAssignDailyActivities(String userId) {
+        LocalDate today = LocalDate.now();
+        if (!userDailyActivityRepository.existsByUserIdAndAssignedDate(userId, today)) {
+            log.info("No se encontraron actividades para el usuario {}, asignando nuevas para hoy.", userId);
+            assignNewDailyActivities(userId, today);
+        }
+
+        List<UserDailyActivity> userDailyActivities = userDailyActivityRepository.findByUserIdAndAssignedDate(userId, today);
+        return userDailyActivities.stream()
+                .map(UserDailyActivity::getDailyExercise)
+                .map(dailyExerciseMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    private void assignNewDailyActivities(String userId, LocalDate date) {
+        List<DailyExercise> allExercises = dailyExerciseRepository.findAll();
+        Collections.shuffle(allExercises);
+        List<DailyExercise> selectedExercises = allExercises.stream().limit(5).collect(Collectors.toList());
+
+        for (DailyExercise exercise : selectedExercises) {
+            UserDailyActivity userDailyActivity = new UserDailyActivity();
+            userDailyActivity.setUserId(userId);
+            userDailyActivity.setDailyExercise(exercise);
+            userDailyActivity.setAssignedDate(date);
+            userDailyActivityRepository.save(userDailyActivity);
+        }
+        log.info("Se han asignado {} actividades diarias al usuario {}.", selectedExercises.size(), userId);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -52,11 +88,9 @@ public class DailyExerciseServiceImpl implements IDailyExerciseService {
     @Transactional(readOnly = true)
     public List<DailyExerciseResponseDTO> getExercisesByCategory(UUID categoryId) {
         log.info("Obteniendo ejercicios por categoría ID: {}", categoryId);
-
         if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Categoría", "id", categoryId);
         }
-
         return dailyExerciseRepository.findByCategoryId(categoryId)
                 .stream()
                 .map(dailyExerciseMapper::toResponseDTO)
@@ -87,11 +121,9 @@ public class DailyExerciseServiceImpl implements IDailyExerciseService {
     @Transactional(readOnly = true)
     public List<DailyExerciseResponseDTO> getExercisesByCategoryAndDifficulty(UUID categoryId, ExerciseDifficultyType difficulty) {
         log.info("Obteniendo ejercicios por categoría {} y dificultad {}", categoryId, difficulty);
-
         if (!categoryRepository.existsById(categoryId)) {
             throw new ResourceNotFoundException("Categoría", "id", categoryId);
         }
-
         return dailyExerciseRepository.findByCategoryAndDifficulty(categoryId, difficulty)
                 .stream()
                 .map(dailyExerciseMapper::toResponseDTO)
@@ -102,13 +134,10 @@ public class DailyExerciseServiceImpl implements IDailyExerciseService {
     @Transactional
     public DailyExerciseResponseDTO createExercise(DailyExerciseRequestDTO requestDTO) {
         log.info("Creando nuevo ejercicio: {}", requestDTO.getTitle());
-
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Categoría", "id", requestDTO.getCategoryId()));
-
         DailyExercise exercise = dailyExerciseMapper.toEntity(requestDTO, category);
         DailyExercise savedExercise = dailyExerciseRepository.save(exercise);
-
         log.info("Ejercicio creado exitosamente con ID: {}", savedExercise.getId());
         return dailyExerciseMapper.toResponseDTO(savedExercise);
     }
@@ -117,16 +146,12 @@ public class DailyExerciseServiceImpl implements IDailyExerciseService {
     @Transactional
     public DailyExerciseResponseDTO updateExercise(UUID id, DailyExerciseRequestDTO requestDTO) {
         log.info("Actualizando ejercicio con ID: {}", id);
-
         DailyExercise exercise = dailyExerciseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ejercicio", "id", id));
-
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Categoría", "id", requestDTO.getCategoryId()));
-
         dailyExerciseMapper.updateEntityFromDTO(requestDTO, exercise, category);
         DailyExercise updatedExercise = dailyExerciseRepository.save(exercise);
-
         log.info("Ejercicio actualizado exitosamente con ID: {}", id);
         return dailyExerciseMapper.toResponseDTO(updatedExercise);
     }
@@ -135,10 +160,8 @@ public class DailyExerciseServiceImpl implements IDailyExerciseService {
     @Transactional
     public void deleteExercise(UUID id) {
         log.info("Eliminando ejercicio con ID: {}", id);
-
         DailyExercise exercise = dailyExerciseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ejercicio", "id", id));
-
         dailyExerciseRepository.delete(exercise);
         log.info("Ejercicio eliminado exitosamente con ID: {}", id);
     }

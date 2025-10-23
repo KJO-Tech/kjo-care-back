@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface IDailyExerciseService {
+    List<DailyExerciseResponseDTO> getOrAssignDailyActivities(String userId);
     List<DailyExerciseResponseDTO> getAllExercises();
     DailyExerciseResponseDTO getExerciseById(UUID id);
     List<DailyExerciseResponseDTO> getExercisesByCategory(UUID categoryId);

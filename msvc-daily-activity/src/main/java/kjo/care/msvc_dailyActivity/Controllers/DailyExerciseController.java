@@ -2,8 +2,6 @@ package kjo.care.msvc_dailyActivity.Controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,103 +38,25 @@ public class DailyExerciseController {
     private final IDailyExerciseService dailyExerciseService;
 
     @Operation(
-            summary = "Obtener todos los ejercicios",
-            description = "Recupera una lista de todos los ejercicios diarios disponibles",
+            summary = "Obtener o asignar actividades diarias para el usuario autenticado",
+            description = "Recupera las actividades diarias del usuario para hoy. Si es la primera vez en el día, se las asigna y luego las devuelve.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Lista de ejercicios obtenida exitosamente"),
+                    @ApiResponse(responseCode = "200", description = "Lista de actividades diarias obtenida exitosamente"),
                     @ApiResponse(responseCode = "401", description = "No autorizado")
             }
     )
-    @GetMapping
-    public ResponseEntity<ApiResponseDto<List<DailyExerciseResponseDTO>>> getAllExercises() {
-        log.info("GET /exercises - Obteniendo todos los ejercicios");
-        List<DailyExerciseResponseDTO> exercises = dailyExerciseService.getAllExercises();
+    @GetMapping("/daily/user")
+    public ResponseEntity<ApiResponseDto<List<DailyExerciseResponseDTO>>> getOrAssignDailyActivitiesForUser(
+            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        log.info("GET /exercises/daily/user - Obteniendo o asignando actividades para el usuario {}", userId);
+        
+        List<DailyExerciseResponseDTO> exercises = dailyExerciseService.getOrAssignDailyActivities(userId);
 
-        if (exercises.isEmpty()) {
-            log.info("No se encontraron ejercicios");
-            return ResponseBuilder.buildResponse(
-                    HttpStatus.OK,
-                    "No se encontraron ejercicios",
-                    true,
-                    exercises
-            );
-        }
-
-        log.info("Ejercicios obtenidos correctamente, total: {}", exercises.size());
+        log.info("Actividades diarias obtenidas para el usuario {}, total: {}", userId, exercises.size());
         return ResponseBuilder.buildResponse(
                 HttpStatus.OK,
-                "Ejercicios obtenidos correctamente",
-                true,
-                exercises
-        );
-    }
-
-    @Operation(
-            summary = "Obtener ejercicio por ID",
-            description = "Recupera un ejercicio específico por su ID",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Ejercicio encontrado"),
-                    @ApiResponse(responseCode = "404", description = "Ejercicio no encontrado"),
-                    @ApiResponse(responseCode = "401", description = "No autorizado")
-            }
-    )
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDto<DailyExerciseResponseDTO>> getExerciseById(
-            @Parameter(description = "ID del ejercicio", required = true)
-            @PathVariable UUID id) {
-        log.info("GET /exercises/{} - Obteniendo ejercicio", id);
-        DailyExerciseResponseDTO exercise = dailyExerciseService.getExerciseById(id);
-        log.info("Ejercicio obtenido correctamente con ID: {}", id);
-        return ResponseBuilder.buildResponse(
-                HttpStatus.OK,
-                "Ejercicio obtenido correctamente",
-                true,
-                exercise
-        );
-    }
-
-    @Operation(
-            summary = "Obtener ejercicios por categoría",
-            description = "Recupera todos los ejercicios de una categoría específica",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Lista de ejercicios obtenida exitosamente"),
-                    @ApiResponse(responseCode = "404", description = "Categoría no encontrada"),
-                    @ApiResponse(responseCode = "401", description = "No autorizado")
-            }
-    )
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<ApiResponseDto<List<DailyExerciseResponseDTO>>> getExercisesByCategory(
-            @Parameter(description = "ID de la categoría", required = true)
-            @PathVariable UUID categoryId) {
-        log.info("GET /exercises/category/{} - Obteniendo ejercicios por categoría", categoryId);
-        List<DailyExerciseResponseDTO> exercises = dailyExerciseService.getExercisesByCategory(categoryId);
-        log.info("Ejercicios obtenidos correctamente para categoría {}, total: {}", categoryId, exercises.size());
-        return ResponseBuilder.buildResponse(
-                HttpStatus.OK,
-                "Ejercicios obtenidos correctamente",
-                true,
-                exercises
-        );
-    }
-
-    @Operation(
-            summary = "Obtener ejercicios por tipo de contenido",
-            description = "Recupera todos los ejercicios de un tipo de contenido específico",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Lista de ejercicios obtenida exitosamente"),
-                    @ApiResponse(responseCode = "401", description = "No autorizado")
-            }
-    )
-    @GetMapping("/content-type/{contentType}")
-    public ResponseEntity<ApiResponseDto<List<DailyExerciseResponseDTO>>> getExercisesByContentType(
-            @Parameter(description = "Tipo de contenido (TEXTO, JUEGO, AUDIO, VIDEO)", required = true)
-            @PathVariable ExerciseContentType contentType) {
-        log.info("GET /exercises/content-type/{} - Obteniendo ejercicios por tipo de contenido", contentType);
-        List<DailyExerciseResponseDTO> exercises = dailyExerciseService.getExercisesByContentType(contentType);
-        log.info("Ejercicios obtenidos correctamente para tipo {}, total: {}", contentType, exercises.size());
-        return ResponseBuilder.buildResponse(
-                HttpStatus.OK,
-                "Ejercicios obtenidos correctamente",
+                "Actividades diarias obtenidas correctamente",
                 true,
                 exercises
         );
@@ -199,7 +121,7 @@ public class DailyExerciseController {
                     @ApiResponse(responseCode = "401", description = "No autorizado")
             }
     )
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSIONAL')")
+    @PreAuthorize("hasRole('admin_client_role')")
     @PostMapping
     public ResponseEntity<ApiResponseDto<DailyExerciseResponseDTO>> createExercise(
             @Valid @RequestBody DailyExerciseRequestDTO requestDTO) {
@@ -224,7 +146,7 @@ public class DailyExerciseController {
                     @ApiResponse(responseCode = "401", description = "No autorizado")
             }
     )
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSIONAL')")
+    @PreAuthorize("hasRole('admin_client_role')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponseDto<DailyExerciseResponseDTO>> updateExercise(
             @Parameter(description = "ID del ejercicio", required = true)
@@ -250,7 +172,7 @@ public class DailyExerciseController {
                     @ApiResponse(responseCode = "401", description = "No autorizado")
             }
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('admin_client_role')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponseDto<Void>> deleteExercise(
             @Parameter(description = "ID del ejercicio", required = true)

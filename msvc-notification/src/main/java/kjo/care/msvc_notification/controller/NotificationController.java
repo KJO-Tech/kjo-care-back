@@ -52,7 +52,7 @@ public class NotificationController {
     @ApiResponse(responseCode = "200", description = "Notificacion leída correctamente")
     @ApiResponse(responseCode = "404", description = "Notificación no encontrada")
     @PutMapping("/{notificationId}")
-    public ResponseEntity<ApiResponseDto<NotificationResponseDto>> readNotification(UUID notificationId) {
+    public ResponseEntity<ApiResponseDto<NotificationResponseDto>> readNotification(@RequestParam UUID notificationId) {
         NotificationResponseDto notification = notificationService.readNotification(notificationId);
         return ResponseBuilder.buildResponse(HttpStatus.OK, "Notificación leída correctamente", true, notification);
     }

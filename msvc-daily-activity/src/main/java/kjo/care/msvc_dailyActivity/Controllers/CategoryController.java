@@ -100,7 +100,7 @@ public class CategoryController {
                     @ApiResponse(responseCode = "401", description = "No autorizado")
             }
     )
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSIONAL')")
+    @PreAuthorize("hasRole('admin_client_role')")
     @PostMapping
     public ResponseEntity<ApiResponseDto<CategoryResponseDTO>> createCategory(
             @Valid @RequestBody CategoryRequestDTO requestDTO) {
@@ -125,7 +125,7 @@ public class CategoryController {
                     @ApiResponse(responseCode = "401", description = "No autorizado")
             }
     )
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSIONAL')")
+    @PreAuthorize("hasRole('admin_client_role')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponseDto<CategoryResponseDTO>> updateCategory(
             @Parameter(description = "ID de la categoría", required = true)
@@ -151,7 +151,7 @@ public class CategoryController {
                     @ApiResponse(responseCode = "401", description = "No autorizado")
             }
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('admin_client_role')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponseDto<Void>> deleteCategory(
             @Parameter(description = "ID de la categoría", required = true)
