@@ -69,3 +69,7 @@ spring:
             - Path=/api/mind/notification/**
           filters:
             - StripPrefix=3
+        - id: msvc-notification-ws
+          uri: lb:ws://msvc-notification
+          predicates:
+            - Path=/ws-notifications/**
