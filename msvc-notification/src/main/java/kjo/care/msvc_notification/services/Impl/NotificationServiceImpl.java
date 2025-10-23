@@ -56,13 +56,14 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notificación LIKE creada para usuario {}.", event.getBlogAuthorId());
 
         String userId = savedNotification.getRecipientUserId();
-        String destination = "/queue/notifications";
-        messagingTemplate.convertAndSendToUser(
-            userId,
-            destination,
-            notificationMapper.toDto(savedNotification)
+        String destination = "/queue/notifications-" + userId;
+
+        messagingTemplate.convertAndSend(
+                destination,
+                notificationMapper.toDto(savedNotification)
         );
-        log.info("Notificación LIKE enviada por WebSocket al usuario {}.", userId);
+
+        log.info("Notificación LIKE enviada por WebSocket al destino {}.", destination);
     }
 
     @Override
@@ -95,13 +96,14 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notificación COMMENT creada para usuario {}.", event.getBlogAuthorId());
 
         String userId = savedNotification.getRecipientUserId();
-        String destination = "/queue/notifications";
-        messagingTemplate.convertAndSendToUser(
-            userId,
-            destination,
-            notificationMapper.toDto(savedNotification)
+        String destination = "/queue/notifications-" + userId;
+
+        messagingTemplate.convertAndSend(
+                destination,
+                notificationMapper.toDto(savedNotification)
         );
-        log.info("Notificación COMMENT enviada por WebSocket al usuario {}.", userId);
+
+        log.info("Notificación COMMENT enviada por WebSocket al destino {}.", destination);
     }
 
     @Override
@@ -134,13 +136,14 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notificación de respuesta a comentario creada para usuario {}.", event.getParentCommentAuthorId());
 
         String userId = savedNotification.getRecipientUserId();
-        String destination = "/queue/notifications";
-        messagingTemplate.convertAndSendToUser(
-            userId,
-            destination,
-            notificationMapper.toDto(savedNotification)
+        String destination = "/queue/notifications-" + userId;
+
+        messagingTemplate.convertAndSend(
+                destination,
+                notificationMapper.toDto(savedNotification)
         );
-        log.info("Notificación de respuesta a comentario enviada por WebSocket al usuario {}.", userId);
+
+        log.info("Notificación de respuesta a comentario enviada por WebSocket al destino {}.", destination);
     }
 
     @Override
@@ -203,13 +206,14 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Notificación de BLOG RECHAZADO guardada para el usuario {}.", event.getAuthorId());
 
         String userId = savedNotification.getRecipientUserId();
-        String destination = "/queue/notifications";
-        messagingTemplate.convertAndSendToUser(
-            userId,
-            destination,
-            notificationMapper.toDto(savedNotification)
+        String destination = "/queue/notifications-" + userId;
+
+        messagingTemplate.convertAndSend(
+                destination,
+                notificationMapper.toDto(savedNotification)
         );
-        log.info("Notificación de BLOG RECHAZADO enviada por WebSocket al usuario {}.", userId);
+
+        log.info("Notificación de BLOG RECHAZADO enviada por WebSocket al destino {}.", destination);
     }
 
     @Override
