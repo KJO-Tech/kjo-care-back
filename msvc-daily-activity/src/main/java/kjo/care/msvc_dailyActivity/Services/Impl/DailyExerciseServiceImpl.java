@@ -5,21 +5,17 @@ import kjo.care.msvc_dailyActivity.DTOs.DailyExerciseRequestDTO;
 import kjo.care.msvc_dailyActivity.DTOs.DailyExerciseResponseDTO;
 import kjo.care.msvc_dailyActivity.Entities.Category;
 import kjo.care.msvc_dailyActivity.Entities.DailyExercise;
-import kjo.care.msvc_dailyActivity.Entities.UserDailyActivity;
 import kjo.care.msvc_dailyActivity.Enums.ExerciseContentType;
 import kjo.care.msvc_dailyActivity.Enums.ExerciseDifficultyType;
 import kjo.care.msvc_dailyActivity.Exceptions.ResourceNotFoundException;
 import kjo.care.msvc_dailyActivity.Mappers.DailyExerciseMapper;
 import kjo.care.msvc_dailyActivity.Repositories.CategoryRepository;
 import kjo.care.msvc_dailyActivity.Repositories.DailyExerciseRepository;
-import kjo.care.msvc_dailyActivity.Repositories.UserDailyActivityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,39 +27,7 @@ public class DailyExerciseServiceImpl implements IDailyExerciseService {
 
     private final DailyExerciseRepository dailyExerciseRepository;
     private final CategoryRepository categoryRepository;
-    private final UserDailyActivityRepository userDailyActivityRepository;
     private final DailyExerciseMapper dailyExerciseMapper;
-
-    @Override
-    @Transactional
-    public List<DailyExerciseResponseDTO> getOrAssignDailyActivities(String userId) {
-        LocalDate today = LocalDate.now();
-        if (!userDailyActivityRepository.existsByUserIdAndAssignedDate(userId, today)) {
-            log.info("No se encontraron actividades para el usuario {}, asignando nuevas para hoy.", userId);
-            assignNewDailyActivities(userId, today);
-        }
-
-        List<UserDailyActivity> userDailyActivities = userDailyActivityRepository.findByUserIdAndAssignedDate(userId, today);
-        return userDailyActivities.stream()
-                .map(UserDailyActivity::getDailyExercise)
-                .map(dailyExerciseMapper::toResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    private void assignNewDailyActivities(String userId, LocalDate date) {
-        List<DailyExercise> allExercises = dailyExerciseRepository.findAll();
-        Collections.shuffle(allExercises);
-        List<DailyExercise> selectedExercises = allExercises.stream().limit(5).collect(Collectors.toList());
-
-        for (DailyExercise exercise : selectedExercises) {
-            UserDailyActivity userDailyActivity = new UserDailyActivity();
-            userDailyActivity.setUserId(userId);
-            userDailyActivity.setDailyExercise(exercise);
-            userDailyActivity.setAssignedDate(date);
-            userDailyActivityRepository.save(userDailyActivity);
-        }
-        log.info("Se han asignado {} actividades diarias al usuario {}.", selectedExercises.size(), userId);
-    }
 
     @Override
     @Transactional(readOnly = true)

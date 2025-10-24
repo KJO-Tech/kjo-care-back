@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -53,15 +55,45 @@ public class AssignmentServiceImpl implements IAssignmentService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<AssignmentResponseDTO> getMyExercisesByDate(String userId, LocalDate date) {
         log.info("Obteniendo ejercicios del usuario {} para la fecha {}", userId, date);
-
-        return assignmentRepository.findByUserIdAndDate(userId, date)
-                .stream()
+        List<UserExerciseAssignment> assignments = assignmentRepository.findByUserIdAndDate(userId, date);
+        if (assignments.isEmpty()) {
+            log.info("No se encontraron ejercicios para {}. Asignando 5 nuevos ejercicios diarios.", userId);
+            return assignDailyExercises(userId, date);
+        }
+        return assignments.stream()
                 .map(assignmentMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    private List<AssignmentResponseDTO> assignDailyExercises(String userId, LocalDate date) {
+        List<DailyExercise> randomExercises = exerciseRepository.findRandomExercises(5);
+        if (randomExercises.isEmpty()) {
+            log.warn("No hay ejercicios disponibles en la base de datos para asignar.");
+            return new ArrayList<>();
+        }
+
+        List<UserExerciseAssignment> newAssignments = randomExercises.stream()
+                .map(exercise -> {
+                    UserExerciseAssignment newAssignment = new UserExerciseAssignment();
+                    newAssignment.setUserId(userId);
+                    newAssignment.setExercise(exercise);
+                    newAssignment.setAssignedAt(date.atStartOfDay());
+                    newAssignment.setCompleted(false);
+                    return newAssignment;
+                })
+                .collect(Collectors.toList());
+
+        List<UserExerciseAssignment> savedAssignments = assignmentRepository.saveAll(newAssignments);
+        log.info("Se asignaron {} nuevos ejercicios al usuario {} para la fecha {}", savedAssignments.size(), userId, date);
+
+        return savedAssignments.stream()
+                .map(assignmentMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     @Transactional(readOnly = true)

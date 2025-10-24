@@ -38,31 +38,6 @@ public class DailyExerciseController {
     private final IDailyExerciseService dailyExerciseService;
 
     @Operation(
-            summary = "Obtener o asignar actividades diarias para el usuario autenticado",
-            description = "Recupera las actividades diarias del usuario para hoy. Si es la primera vez en el día, se las asigna y luego las devuelve.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Lista de actividades diarias obtenida exitosamente"),
-                    @ApiResponse(responseCode = "401", description = "No autorizado")
-            }
-    )
-    @GetMapping("/daily/user")
-    public ResponseEntity<ApiResponseDto<List<DailyExerciseResponseDTO>>> getOrAssignDailyActivitiesForUser(
-            @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt) {
-        String userId = jwt.getSubject();
-        log.info("GET /exercises/daily/user - Obteniendo o asignando actividades para el usuario {}", userId);
-        
-        List<DailyExerciseResponseDTO> exercises = dailyExerciseService.getOrAssignDailyActivities(userId);
-
-        log.info("Actividades diarias obtenidas para el usuario {}, total: {}", userId, exercises.size());
-        return ResponseBuilder.buildResponse(
-                HttpStatus.OK,
-                "Actividades diarias obtenidas correctamente",
-                true,
-                exercises
-        );
-    }
-
-    @Operation(
             summary = "Obtener ejercicios por dificultad",
             description = "Recupera todos los ejercicios de una dificultad específica",
             responses = {

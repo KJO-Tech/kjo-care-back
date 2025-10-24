@@ -24,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,7 +49,7 @@ public class AssignmentController {
                     @ApiResponse(responseCode = "401", description = "No autorizado")
             }
     )
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSIONAL')")
+    @PreAuthorize("hasRole('admin_client_role')")
     @PostMapping
     public ResponseEntity<ApiResponseDto<AssignmentResponseDTO>> assignExercise(
             @Valid @RequestBody AssignmentRequestDTO requestDTO,
