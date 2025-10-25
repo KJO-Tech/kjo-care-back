@@ -7,9 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -26,6 +24,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final BlogClient blogClient;
     private final MoodClient moodClient;
     private final EmergencyClient emergencyClient;
+    private final DailyActivityClient dailyActivityClient;
 
 
     @Cacheable(value = "dashboardStats", key = "'main'")
@@ -262,6 +261,37 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         return Mono.zip(blogAchievementsMono, moodLogDaysMono)
                 .map(tuple -> new AnalyticsSummaryDto(tuple.getT1(), tuple.getT2()))
+                .doOnSuccess(summary -> log.info("Resumen de analíticas obtenido exitosamente: {}", summary))
+                .doOnError(error -> log.error("Error al obtener el resumen de analíticas: {}", error.getMessage()));
+    }
+
+    @Override
+    public Mono<DashboardSummaryDTO> getDashboardSummary(String userId) {
+        log.info("Obteniendo resumen de analíticas para el usuario: {}", userId);
+
+        Mono<DailyActivitySummaryDTO> activitySummary = dailyActivityClient.getDailyActivitySummary(userId)
+                .doOnNext(activity -> log.info("Datos obtenidos correctamente: {}", activity))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener las actividades: {}", error.getMessage());
+                    return Mono.just(new DailyActivitySummaryDTO(0L, 0L));
+                });
+
+        Mono<Long> moodLogDaysMono = moodClient.getMoodLogDays(userId)
+                .doOnNext(days -> log.info("Días de registro de ánimo obtenidos: {}", days))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener días de registro de ánimo: {}", error.getMessage());
+                    return Mono.just(0L);
+                });
+
+        Mono<Long> averageBlogReaction = blogClient.getAverageBlogReaction(userId)
+                .doOnNext(average -> log.info("Promedio de reacciones de blogs obtenidos: {}", average))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener el promedio de reacciones: {}", error.getMessage());
+                    return Mono.just(0L);
+                });
+
+        return Mono.zip(activitySummary, moodLogDaysMono, averageBlogReaction)
+                .map(tuple -> new DashboardSummaryDTO(tuple.getT1(), tuple.getT2(), tuple.getT3()))
                 .doOnSuccess(summary -> log.info("Resumen de analíticas obtenido exitosamente: {}", summary))
                 .doOnError(error -> log.error("Error al obtener el resumen de analíticas: {}", error.getMessage()));
     }

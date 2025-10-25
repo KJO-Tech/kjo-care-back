@@ -1,6 +1,7 @@
 package kjo.care.msvc_dailyActivity.Services;
 
 import kjo.care.msvc_dailyActivity.DTOs.AssignmentResponseDTO;
+import kjo.care.msvc_dailyActivity.DTOs.DailyActivitySummaryDTO;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,6 +27,6 @@ public interface IAssignmentService {
 
     long countMyPendingExercises(String userId);
 
-    //DailyActivitySummaryDTO getDailyActivitySummary(String userId, LocalDate date);
+    DailyActivitySummaryDTO getDailyActivitySummary(String userId, LocalDate date);
 
 }

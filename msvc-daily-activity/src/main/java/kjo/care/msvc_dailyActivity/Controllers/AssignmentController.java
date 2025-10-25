@@ -283,21 +283,18 @@ public class AssignmentController {
                 count
         );
     }
-    /*
     @Operation(
             summary = "Obtener resumen de actividad diaria para un usuario",
             description = "Obtiene el número total de ejercicios asignados y completados para un usuario en el día de hoy. Creado para ser consumido por msvc-analiticas.")
-    @ApiResponse(responseCode = "200", description = "Resumen obtenido exitosamente"),
+    @ApiResponse(responseCode = "200", description = "Resumen obtenido exitosamente")
     @ApiResponse(responseCode = "401", description = "No autorizado")
     @GetMapping("/summary/daily/{userId}")
     public ResponseEntity<DailyActivitySummaryDTO> getDailyActivitySummary(
-            @AuthenticationPrincipal Jwt jwt) {
-
-        String userId = jwt.getSubject();
+            @PathVariable String userId ) {
         log.info("GET /assignments/summary/daily/{} - Obteniendo resumen de actividad diaria", userId);
 
         DailyActivitySummaryDTO summary = assignmentService.getDailyActivitySummary(userId, LocalDate.now());
 
         return ResponseEntity.ok(summary);
-    } */
+    }
 }

@@ -86,4 +86,18 @@ public class AnalyticsController {
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
+
+    @Operation(
+            summary = "Obtener resumen de analíticas",
+            description = "Devuelve un resumen de datos para el dashboard"
+    )
+    @ApiResponse(responseCode = "200", description = "Resumen de analíticas obtenido correctamente")
+    @GetMapping("/summary-dashboard")
+    public Mono<ResponseEntity<DashboardSummaryDTO>> getDashboardSummary(
+            @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        return analyticsService.getDashboardSummary(userId)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
 }

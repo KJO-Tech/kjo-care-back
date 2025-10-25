@@ -1,6 +1,7 @@
 package kjo.care.msvc_dailyActivity.Services.Impl;
 
 import kjo.care.msvc_dailyActivity.DTOs.AssignmentResponseDTO;
+import kjo.care.msvc_dailyActivity.DTOs.DailyActivitySummaryDTO;
 import kjo.care.msvc_dailyActivity.Entities.DailyExercise;
 import kjo.care.msvc_dailyActivity.Entities.UserExerciseAssignment;
 import kjo.care.msvc_dailyActivity.Exceptions.ResourceNotFoundException;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -67,33 +67,6 @@ public class AssignmentServiceImpl implements IAssignmentService {
                 .map(assignmentMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
-
-    private List<AssignmentResponseDTO> assignDailyExercises(String userId, LocalDate date) {
-        List<DailyExercise> randomExercises = exerciseRepository.findRandomExercises(5);
-        if (randomExercises.isEmpty()) {
-            log.warn("No hay ejercicios disponibles en la base de datos para asignar.");
-            return new ArrayList<>();
-        }
-
-        List<UserExerciseAssignment> newAssignments = randomExercises.stream()
-                .map(exercise -> {
-                    UserExerciseAssignment newAssignment = new UserExerciseAssignment();
-                    newAssignment.setUserId(userId);
-                    newAssignment.setExercise(exercise);
-                    newAssignment.setAssignedAt(date.atStartOfDay());
-                    newAssignment.setCompleted(false);
-                    return newAssignment;
-                })
-                .collect(Collectors.toList());
-
-        List<UserExerciseAssignment> savedAssignments = assignmentRepository.saveAll(newAssignments);
-        log.info("Se asignaron {} nuevos ejercicios al usuario {} para la fecha {}", savedAssignments.size(), userId, date);
-
-        return savedAssignments.stream()
-                .map(assignmentMapper::toResponseDTO)
-                .collect(Collectors.toList());
-    }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -173,17 +146,50 @@ public class AssignmentServiceImpl implements IAssignmentService {
         return assignmentRepository.countByUserIdAndCompleted(userId, false);
     }
 
-    /*
+
     @Override
     @Transactional
     public DailyActivitySummaryDTO getDailyActivitySummary(String userId, LocalDate date) {
         log.info("Obteniendo resumen de actividad diaria para el usuario {} en la fecha {}", userId, date);
 
         List<AssignmentResponseDTO> assignments = getMyExercisesByDate(userId, date);
+        if (assignments.isEmpty()) {
+            log.info("No se encontraron ejercicios para {}. Asignando 5 nuevos ejercicios diarios.", userId);
+            assignments = assignDailyExercises(userId, date);
+        }
 
         long totalAssignments = assignments.size();
         long completedAssignments = assignments.stream().filter(AssignmentResponseDTO::getCompleted).count();
 
-        return new DailyActivitySummaryDTO(totalAssignments, completedAssignments);
-    } */
+        return DailyActivitySummaryDTO.builder()
+                .totalAssignments(totalAssignments)
+                .completedAssignments(completedAssignments)
+                .build();
+    }
+
+    private List<AssignmentResponseDTO> assignDailyExercises(String userId, LocalDate date) {
+        List<DailyExercise> randomExercises = exerciseRepository.findRandomExercises(5);
+        if (randomExercises.isEmpty()) {
+            log.warn("No hay ejercicios disponibles en la base de datos para asignar.");
+            return new ArrayList<>();
+        }
+
+        List<UserExerciseAssignment> newAssignments = randomExercises.stream()
+                .map(exercise -> {
+                    UserExerciseAssignment newAssignment = new UserExerciseAssignment();
+                    newAssignment.setUserId(userId);
+                    newAssignment.setExercise(exercise);
+                    newAssignment.setAssignedAt(date.atStartOfDay());
+                    newAssignment.setCompleted(false);
+                    return newAssignment;
+                })
+                .collect(Collectors.toList());
+
+        List<UserExerciseAssignment> savedAssignments = assignmentRepository.saveAll(newAssignments);
+        log.info("Se asignaron {} nuevos ejercicios al usuario {} para la fecha {}", savedAssignments.size(), userId, date);
+
+        return savedAssignments.stream()
+                .map(assignmentMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
 }

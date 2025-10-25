@@ -203,4 +203,13 @@ public class BlogController {
                     .body(Map.of("error", "Error al procesar la consulta", "message", e.getMessage()));
         }
     }
+
+    @Operation(summary = "Obtener promedio de likes en sus blogs ", description = "Devuelve los logros del servicio blog")
+    @ApiResponse(responseCode = "200", description = "Logros obtenidos correctamente")
+    @GetMapping("/count/average-blog-reaction/{userId}")
+    public ResponseEntity<Long> countAverageBlogReaction(@PathVariable String userId) {
+        Long averageBlogLikes = blogService.countAverageBlogLikes(userId);
+        return ResponseEntity.ok(averageBlogLikes);
+    }
+
 }

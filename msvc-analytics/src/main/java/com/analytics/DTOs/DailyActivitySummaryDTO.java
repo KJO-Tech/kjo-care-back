@@ -1,4 +1,4 @@
-package kjo.care.msvc_dailyActivity.DTOs;
+package com.analytics.DTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

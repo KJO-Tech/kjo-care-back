@@ -25,6 +25,22 @@ public class BlogClient {
     @Value("${microservices.blog.url}")
     private String blogServiceUrl;
 
+    public Mono<Long> getAverageBlogReaction(String userId){
+        return webClientBuilder
+                .baseUrl(blogServiceUrl)
+                .build()
+                .get()
+                .uri("/blogs/count/average-blog-reaction/{userId}", userId)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(
+                                        new RuntimeException("Error al obtener el promedio de blogs: " + errorBody)
+                                ))
+                )
+                .bodyToMono(Long.class);
+    }
+
     public Mono<BlogAchievementsDto> getBlogAchievements(String userId) {
         return webClientBuilder
                 .baseUrl(blogServiceUrl)

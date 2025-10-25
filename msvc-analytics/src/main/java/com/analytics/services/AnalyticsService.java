@@ -1,9 +1,6 @@
 package com.analytics.services;
 
-import com.analytics.DTOs.AnalyticsSummaryDto;
-import com.analytics.DTOs.DailyBlogCountDto;
-import com.analytics.DTOs.DailyMoodUserCountDto;
-import com.analytics.DTOs.DashboardStatsDto;
+import com.analytics.DTOs.*;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -21,5 +18,6 @@ public interface AnalyticsService {
 
     Mono<List<DailyMoodUserCountDto>> getDailyMoodUsersLastMonth();
     Mono<AnalyticsSummaryDto> getAnalyticsSummary(String userId);
+    Mono<DashboardSummaryDTO> getDashboardSummary(String userId);
 
 }

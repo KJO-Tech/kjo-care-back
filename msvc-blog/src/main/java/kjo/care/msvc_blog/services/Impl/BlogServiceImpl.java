@@ -316,6 +316,11 @@ public class BlogServiceImpl implements BlogService {
                 .build();
     }
 
+    @Override
+    public Long countAverageBlogLikes(String userId) {
+        return blogRepository.findAverageReactionsByUserId(userId);
+    }
+
     private boolean isAdminFromJwt() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication.getPrincipal() instanceof Jwt jwt) {
