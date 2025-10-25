@@ -20,11 +20,12 @@ public class MoodUser {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
-
     @Column(name = "user_id")
     private String userId;
     private LocalDateTime recordedDate;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mood_id")
     private MoodEntity mood;
+    @Column(name = "description")
+    private String description;
 }
