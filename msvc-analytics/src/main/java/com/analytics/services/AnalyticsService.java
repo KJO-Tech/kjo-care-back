@@ -1,5 +1,6 @@
 package com.analytics.services;
 
+import com.analytics.DTOs.AnalyticsSummaryDto;
 import com.analytics.DTOs.DailyBlogCountDto;
 import com.analytics.DTOs.DailyMoodUserCountDto;
 import com.analytics.DTOs.DashboardStatsDto;
@@ -19,5 +20,6 @@ public interface AnalyticsService {
     Mono<List<DailyBlogCountDto>> getDailyBlogsCurrentMonth();
 
     Mono<List<DailyMoodUserCountDto>> getDailyMoodUsersLastMonth();
+    Mono<AnalyticsSummaryDto> getAnalyticsSummary(String userId);
 
 }

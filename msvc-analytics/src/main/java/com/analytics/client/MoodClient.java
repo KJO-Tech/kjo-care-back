@@ -4,6 +4,7 @@ import com.analytics.DTOs.MoodCountDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -21,6 +22,22 @@ public class MoodClient {
 
     @Value("${microservices.mood-tracking.url}")
     private String moodServiceUrl;
+
+    public Mono<Long> getMoodLogDays(String userId) {
+        return webClientBuilder
+                .baseUrl(moodServiceUrl)
+                .build()
+                .get()
+                .uri("/user-mood/mood-log-days/{userId}", userId)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(
+                                        new RuntimeException("Error al obtener días de registro de ánimo: " + errorBody)
+                                ))
+                )
+                .bodyToMono(Long.class);
+    }
 
     public Mono<Long> getTotalMoods() {
         // Método existente

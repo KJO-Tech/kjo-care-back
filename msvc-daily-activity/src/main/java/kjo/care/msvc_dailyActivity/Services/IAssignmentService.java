@@ -25,4 +25,7 @@ public interface IAssignmentService {
     long countMyCompletedExercises(String userId);
 
     long countMyPendingExercises(String userId);
+
+    //DailyActivitySummaryDTO getDailyActivitySummary(String userId, LocalDate date);
+
 }

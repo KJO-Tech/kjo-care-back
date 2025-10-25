@@ -25,4 +25,7 @@ public interface ReactionRepository extends JpaRepository<Reaction, UUID> {
     @Query("SELECT r.blog.id FROM Reaction r WHERE r.userId = :userId AND r.blog.id IN :blogIds")
     Set<UUID> findLikedBlogIdsByUserIdAndBlogIds(@Param("userId") String userId, @Param("blogIds") List<UUID> blogIds);
 
+    @Query("SELECT COUNT(r) FROM Reaction r WHERE r.userId = :userId")
+    Long countByUserId(@Param("userId") String userId);
+
 }

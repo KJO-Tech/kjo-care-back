@@ -17,6 +17,9 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     @Query("SELECT COUNT(c) FROM Comment c WHERE c.blog.id = :blogId")
     Long countByBlogId(@Param("blogId") UUID blogId);
 
+    @Query("SELECT COUNT(c) FROM Comment c WHERE c.userId = :userId")
+    Long countCommentsByUserId(@Param("userId") String userId);
+
     List<Comment> findByBlogIdAndParentIsNull(UUID blogId);
     List<Comment> findByParentId(UUID parentId);
 }

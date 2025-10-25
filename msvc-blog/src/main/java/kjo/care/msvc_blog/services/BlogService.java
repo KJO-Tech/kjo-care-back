@@ -1,5 +1,6 @@
 package kjo.care.msvc_blog.services;
 
+import kjo.care.msvc_blog.dto.BlogAchievementsDto;
 import kjo.care.msvc_blog.dto.BlogDtos.*;
 
 import java.time.LocalDate;
@@ -19,5 +20,6 @@ public interface BlogService {
     Long countBlogs();
     Long countBlogsPreviousMonth();
     List<Object[]> countBlogsByDayBetweenDates(String state, LocalDate startDate, LocalDate endDate);
+    BlogAchievementsDto countAchievements(String userId);
 
 }

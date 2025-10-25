@@ -6,10 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kjo.care.msvc_dailyActivity.DTOs.ApiResponseDto;
-import kjo.care.msvc_dailyActivity.DTOs.AssignmentRequestDTO;
-import kjo.care.msvc_dailyActivity.DTOs.AssignmentResponseDTO;
-import kjo.care.msvc_dailyActivity.DTOs.CompleteExerciseRequestDTO;
+import kjo.care.msvc_dailyActivity.DTOs.*;
 import kjo.care.msvc_dailyActivity.Services.IAssignmentService;
 import kjo.care.msvc_dailyActivity.Utils.ResponseBuilder;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +21,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -287,4 +283,21 @@ public class AssignmentController {
                 count
         );
     }
+    /*
+    @Operation(
+            summary = "Obtener resumen de actividad diaria para un usuario",
+            description = "Obtiene el número total de ejercicios asignados y completados para un usuario en el día de hoy. Creado para ser consumido por msvc-analiticas.")
+    @ApiResponse(responseCode = "200", description = "Resumen obtenido exitosamente"),
+    @ApiResponse(responseCode = "401", description = "No autorizado")
+    @GetMapping("/summary/daily/{userId}")
+    public ResponseEntity<DailyActivitySummaryDTO> getDailyActivitySummary(
+            @AuthenticationPrincipal Jwt jwt) {
+
+        String userId = jwt.getSubject();
+        log.info("GET /assignments/summary/daily/{} - Obteniendo resumen de actividad diaria", userId);
+
+        DailyActivitySummaryDTO summary = assignmentService.getDailyActivitySummary(userId, LocalDate.now());
+
+        return ResponseEntity.ok(summary);
+    } */
 }

@@ -163,6 +163,14 @@ public class BlogController {
         return ResponseEntity.ok(new BlogCountDto(count));
     }
 
+    @Operation(summary = "Obtener logros del servicio blog", description = "Devuelve los logros del servicio blog")
+    @ApiResponse(responseCode = "200", description = "Logros obtenidos correctamente")
+    @GetMapping("/count/achievements/{userId}")
+    public ResponseEntity<BlogAchievementsDto> getAchievements(@PathVariable String userId){
+        BlogAchievementsDto achievements = blogService.countAchievements(userId);
+        return ResponseEntity.ok(achievements);
+    }
+
     @Operation(summary = "Obtener conteo de blogs por día entre fechas", description = "API interna para consultas de análisis")
     @ApiResponse(responseCode = "200", description = "Datos obtenidos correctamente")
     @ApiResponse(responseCode = "500", description = "Error interno del servidor")

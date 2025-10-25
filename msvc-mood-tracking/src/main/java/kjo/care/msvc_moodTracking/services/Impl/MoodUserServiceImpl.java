@@ -413,4 +413,10 @@ public class MoodUserServiceImpl implements MoodUserService {
                 .count();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public long countMoodLogDays(String userId) {
+        log.info("Contando los días de registro de estado de ánimo para el usuario: {}", userId);
+        return moodUserRepository.countDistinctDaysByUserId(userId);
+    }
 }

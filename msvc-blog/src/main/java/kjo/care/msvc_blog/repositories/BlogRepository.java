@@ -46,4 +46,7 @@ public interface BlogRepository extends JpaRepository<Blog, UUID> {
 
     @Query("SELECT b FROM Blog b LEFT JOIN FETCH b.category WHERE b.id = :id")
     Optional<Blog> findByIdWithCategory(@Param("id") UUID id);
+
+    @Query("SELECT COUNT(b) FROM Blog b WHERE b.userId = :userId")
+    Long countByUserId(@Param("userId") String userId);
 }

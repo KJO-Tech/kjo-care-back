@@ -172,4 +172,18 @@ public class AssignmentServiceImpl implements IAssignmentService {
     public long countMyPendingExercises(String userId) {
         return assignmentRepository.countByUserIdAndCompleted(userId, false);
     }
+
+    /*
+    @Override
+    @Transactional
+    public DailyActivitySummaryDTO getDailyActivitySummary(String userId, LocalDate date) {
+        log.info("Obteniendo resumen de actividad diaria para el usuario {} en la fecha {}", userId, date);
+
+        List<AssignmentResponseDTO> assignments = getMyExercisesByDate(userId, date);
+
+        long totalAssignments = assignments.size();
+        long completedAssignments = assignments.stream().filter(AssignmentResponseDTO::getCompleted).count();
+
+        return new DailyActivitySummaryDTO(totalAssignments, completedAssignments);
+    } */
 }

@@ -1,19 +1,15 @@
 package com.analytics.services.Impl;
 
-import com.analytics.DTOs.DailyBlogCountDto;
-import com.analytics.DTOs.DailyMoodUserCountDto;
-import com.analytics.DTOs.DashboardStatsDto;
-import com.analytics.DTOs.MetricData;
-import com.analytics.client.AuthClient;
-import com.analytics.client.BlogClient;
-import com.analytics.client.EmergencyClient;
-import com.analytics.client.MoodClient;
+import com.analytics.DTOs.*;
+import com.analytics.client.*;
 import com.analytics.services.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -30,6 +26,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final BlogClient blogClient;
     private final MoodClient moodClient;
     private final EmergencyClient emergencyClient;
+
 
     @Cacheable(value = "dashboardStats", key = "'main'")
     @Override
@@ -246,4 +243,26 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 });
     }
 
+    public Mono<AnalyticsSummaryDto> getAnalyticsSummary(String userId) {
+        log.info("Obteniendo resumen de analíticas para el usuario: {}", userId);
+
+        Mono<BlogAchievementsDto> blogAchievementsMono = blogClient.getBlogAchievements(userId)
+                .doOnNext(achievements -> log.info("Logros del blog obtenidos: {}", achievements))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener logros del blog: {}", error.getMessage());
+                    return Mono.just(new BlogAchievementsDto(0L, 0L, 0L)); // Valores por defecto
+                });
+
+        Mono<Long> moodLogDaysMono = moodClient.getMoodLogDays(userId)
+                .doOnNext(days -> log.info("Días de registro de ánimo obtenidos: {}", days))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener días de registro de ánimo: {}", error.getMessage());
+                    return Mono.just(0L); // Valor por defecto
+                });
+
+        return Mono.zip(blogAchievementsMono, moodLogDaysMono)
+                .map(tuple -> new AnalyticsSummaryDto(tuple.getT1(), tuple.getT2()))
+                .doOnSuccess(summary -> log.info("Resumen de analíticas obtenido exitosamente: {}", summary))
+                .doOnError(error -> log.error("Error al obtener el resumen de analíticas: {}", error.getMessage()));
+    }
 }

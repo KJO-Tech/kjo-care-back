@@ -1,10 +1,12 @@
 package com.analytics.client;
 
+import com.analytics.DTOs.BlogAchievementsDto;
 import com.analytics.DTOs.BlogCountDto;
 import com.analytics.DTOs.DailyBlogCountDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -22,6 +24,22 @@ public class BlogClient {
     private final WebClient.Builder webClientBuilder;
     @Value("${microservices.blog.url}")
     private String blogServiceUrl;
+
+    public Mono<BlogAchievementsDto> getBlogAchievements(String userId) {
+        return webClientBuilder
+                .baseUrl(blogServiceUrl)
+                .build()
+                .get()
+                .uri("/blogs/count/achievements/{userId}", userId)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(
+                                        new RuntimeException("Error al obtener logros del blog: " + errorBody)
+                                ))
+                )
+                .bodyToMono(BlogAchievementsDto.class);
+    }
 
     public Mono<Long> getTotalBlogs() {
         return webClientBuilder.build()
@@ -75,6 +93,7 @@ public class BlogClient {
                     return Mono.just(List.of());
                 });
     }
+
 
     private Object mapDateString(Object dateObj) {
         try {
