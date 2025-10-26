@@ -423,5 +423,15 @@ public class MoodUserServiceImpl implements MoodUserService {
         return moodUserRepository.countDistinctDaysByUserId(userId);
     }
 
+    @Override
+    public Double getAverageMood(String userId) {
+        log.info("Calculando el promedio de estados de ánimo para el usuario: {}", userId);
+        Double average = moodUserRepository.getAverageMoodValueByUserId(userId);
+        if (average == null) {
+            return null;
+        }
+        return Math.round(average * 10.0) / 10.0;
+    }
+
 
 }

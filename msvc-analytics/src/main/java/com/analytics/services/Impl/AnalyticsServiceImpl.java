@@ -1,13 +1,7 @@
 package com.analytics.services.Impl;
 
-import com.analytics.DTOs.DailyBlogCountDto;
-import com.analytics.DTOs.DailyMoodUserCountDto;
-import com.analytics.DTOs.DashboardStatsDto;
-import com.analytics.DTOs.MetricData;
-import com.analytics.client.AuthClient;
-import com.analytics.client.BlogClient;
-import com.analytics.client.EmergencyClient;
-import com.analytics.client.MoodClient;
+import com.analytics.DTOs.*;
+import com.analytics.client.*;
 import com.analytics.services.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -297,8 +291,20 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     return Mono.just(0L);
                 });
 
-        return Mono.zip(activitySummary, moodLogDaysMono, averageBlogReaction)
-                .map(tuple -> new DashboardSummaryDTO(tuple.getT1(), tuple.getT2(), tuple.getT3()))
+        Mono<Double> averageMoodMono = moodClient.getAverageMood(userId)
+                .doOnNext(average -> log.info("Promedio de ánimo obtenido: {}", average))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener el promedio de ánimo: {}", error.getMessage());
+                    return Mono.just(0.0);
+                });
+
+        return Mono.zip(activitySummary, moodLogDaysMono, averageBlogReaction, averageMoodMono)
+                .map(tuple -> DashboardSummaryDTO.builder()
+                        .dailyActivitySummary(tuple.getT1())
+                        .moodLogDays(tuple.getT2())
+                        .averageBlogLikes(tuple.getT3())
+                        .averageMood(tuple.getT4())
+                        .build())
                 .doOnSuccess(summary -> log.info("Resumen de analíticas obtenido exitosamente: {}", summary))
                 .doOnError(error -> log.error("Error al obtener el resumen de analíticas: {}", error.getMessage()));
     }

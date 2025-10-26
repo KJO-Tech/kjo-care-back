@@ -28,4 +28,6 @@ public interface MoodUserService {
 
     long countMoodLogDays(String userId);
 
+    Double getAverageMood(String userId);
+
 }
