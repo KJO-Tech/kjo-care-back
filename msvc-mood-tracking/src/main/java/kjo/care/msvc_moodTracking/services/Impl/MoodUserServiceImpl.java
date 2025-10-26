@@ -69,7 +69,7 @@ public class MoodUserServiceImpl implements MoodUserService {
     @Override
     public Flux<UserMoodDTO> getCurrentUserMoods(String userId) {
         log.info("Obteniendo estados de animo del usuario : {}", userId);
-        return Mono.fromCallable(() -> moodUserRepository.findByUserIdWithMood(userId))
+        return Mono.fromCallable(() -> moodUserRepository.findByUserIdWithMoodOrderByCreatedAtDesc(userId))
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMapMany(Flux::fromIterable)
                 .flatMap(moodUser -> getUserById(userId)
@@ -146,7 +146,6 @@ public class MoodUserServiceImpl implements MoodUserService {
         return UserMoodDTO.builder()
                 .id(savedMoodUser.getId())
                 .user(userInfo)
-                .description(savedMoodUser.getDescription())
                 .mood(modelMapper.map(mood, MoodResponseDto.class))
                 .recordedDate(savedMoodUser.getRecordedDate())
                 .build();
@@ -188,8 +187,6 @@ public class MoodUserServiceImpl implements MoodUserService {
                 UserMoodDTO userMoodDTO = UserMoodDTO.builder()
                         .id(moodUser.getId())
                         .user(userDTO)
-                        //
-                        .description(moodUser.getDescription())
                         .mood(modelMapper.map(moodUser.getMood(), MoodResponseDto.class))
                         .recordedDate(moodUser.getRecordedDate())
                         .build();
@@ -419,6 +416,12 @@ public class MoodUserServiceImpl implements MoodUserService {
                 .count();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public long countMoodLogDays(String userId) {
+        log.info("Contando los días de registro de estado de ánimo para el usuario: {}", userId);
+        return moodUserRepository.countDistinctDaysByUserId(userId);
+    }
 
 
 }

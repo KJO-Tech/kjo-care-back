@@ -11,11 +11,14 @@ import java.util.UUID;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
-    @Query("SELECT r.blog.id, COUNT(r) FROM Reaction r WHERE r.blog.id IN :blogIds GROUP BY r.blog.id")
+    @Query("SELECT r.blog.id, COUNT(r) FROM Comment r WHERE r.blog.id IN :blogIds GROUP BY r.blog.id")
     List<Object[]> countByBlogIds(@Param("blogIds") List<UUID> blogIds);
 
     @Query("SELECT COUNT(c) FROM Comment c WHERE c.blog.id = :blogId")
     Long countByBlogId(@Param("blogId") UUID blogId);
+
+    @Query("SELECT COUNT(c) FROM Comment c WHERE c.userId = :userId")
+    Long countCommentsByUserId(@Param("userId") String userId);
 
     List<Comment> findByBlogIdAndParentIsNull(UUID blogId);
     List<Comment> findByParentId(UUID parentId);

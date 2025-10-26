@@ -1,8 +1,9 @@
 package kjo.care.msvc_blog.services.Impl;
 
 import kjo.care.msvc_blog.client.UserClient;
-import kjo.care.msvc_blog.dto.CommentRequestDto;
-import kjo.care.msvc_blog.dto.CommentResponseDto;
+import kjo.care.msvc_blog.dto.CommentDtos.CommentRequestDto;
+import kjo.care.msvc_blog.dto.CommentDtos.CommentResponseDto;
+import kjo.care.msvc_blog.dto.CommentEventDto;
 import kjo.care.msvc_blog.dto.UserInfoDto;
 import kjo.care.msvc_blog.entities.Blog;
 import kjo.care.msvc_blog.entities.Comment;
@@ -11,8 +12,10 @@ import kjo.care.msvc_blog.mappers.CommentMapper;
 import kjo.care.msvc_blog.repositories.BlogRepository;
 import kjo.care.msvc_blog.repositories.CommentRepository;
 import kjo.care.msvc_blog.services.CommentService;
+import kjo.care.msvc_blog.utils.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,6 +39,7 @@ public class CommentServiceImpl implements CommentService {
     private final BlogRepository blogRepository;
     private final UserClient userClient;
     private final CommentMapper commentMapper;
+    private final KafkaTemplate<String, NotificationEvent<?>> kafkaTemplate;
 
     @Override
     @Transactional(readOnly = true)
@@ -58,7 +62,6 @@ public class CommentServiceImpl implements CommentService {
                     .orElseThrow(() -> new EntityNotFoundException("Comentario padre no encontrado"));
         }
 
-
         Comment comment = commentMapper.dtoToEntity(dto);
         comment.setBlog(blog);
         comment.setUserId(userId);
@@ -66,6 +69,31 @@ public class CommentServiceImpl implements CommentService {
         comment.setModifiedDate(LocalDate.now());
         comment.setParent(parent);
         commentRepository.save(comment);
+
+        // Crear y enviar evento de comentario
+        CommentEventDto.CommentEventDtoBuilder commentEventBuilder = CommentEventDto.builder()
+                .commentId(comment.getId())
+                .blogId(blog.getId())
+                .blogAuthorId(blog.getUserId())
+                .commenterUserId(userId)
+                .commenterUsername(user.getFirstName())
+                .sourceService("msvc-blog");
+
+        if (parent != null) {
+            commentEventBuilder.parentCommentId(parent.getId());
+            commentEventBuilder.parentCommentAuthorId(parent.getUserId());
+        }
+
+        CommentEventDto commentEvent = commentEventBuilder.build();
+
+        NotificationEvent<CommentEventDto> notificationEvent = new NotificationEvent<>();
+        notificationEvent.setEventType("COMMENT");
+        notificationEvent.setPayload(commentEvent);
+        notificationEvent.setSourceService("msvc-blog");
+
+        kafkaTemplate.send("notifications", notificationEvent);
+        log.info("Evento de comentario enviado para el blog {}", blog.getId());
+
         return commentMapper.entityToDto(comment);
     }
 

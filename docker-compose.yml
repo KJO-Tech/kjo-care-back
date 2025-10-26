@@ -175,6 +175,8 @@ services:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
+      kafka:
+        condition: service_started
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/blogs
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
@@ -192,6 +194,7 @@ services:
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     networks:
       - spring-cloud-network
   msvc-analytics:
@@ -222,6 +225,68 @@ services:
     networks:
       - spring-cloud-network
 
+  msvc-daily-activity:
+    build:
+      context: ./msvc-daily-activity
+    container_name: msvc-daily-activity
+    hostname: msvc-daily-activity
+    ports:
+      - "9006:9006"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/daily_activity
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-daily-activity
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - KEYCLOAK_SERVER_URL=${KEYCLOAK_SERVER_URL:-http://keycloak:9090}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-kjo-care-realm-dev}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-kjo-care-client}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - KEYCLOAK_HOSTNAME=${KEYCLOAK_HOSTNAME:-localhost}
+    networks:
+      - spring-cloud-network
+
+  msvc-notification:
+    build:
+      context: ./msvc-notification
+    container_name: msvc-notification
+    hostname: msvc-notification
+    ports:
+      - "9007:9007"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/notification
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - SPRING_CLOUD_CONFIG_FAIL_FAST=true
+      - EUREKA_INSTANCE_HOSTNAME=msvc-notification
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - KEYCLOAK_SERVER_URL=${KEYCLOAK_SERVER_URL:-http://keycloak:9090}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-kjo-care-realm-dev}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-kjo-care-client}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - KEYCLOAK_HOSTNAME=${KEYCLOAK_HOSTNAME:-localhost}
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - spring-cloud-network
+
+
   gateway:
     build:
       context: ./msvc-gateway
@@ -246,6 +311,10 @@ services:
         condition: service_started
       msvc-analytics:
         condition: service_started
+      msvc-daily-activity:
+        condition: service_started
+      msvc-notification:
+        condition: service_started
     environment:
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
@@ -269,6 +338,12 @@ services:
       - SPRING_CLOUD_GATEWAY_ROUTES[4]_ID=msvc-blog
       - SPRING_CLOUD_GATEWAY_ROUTES[4]_URI=lb://msvc-blog
       - SPRING_CLOUD_GATEWAY_ROUTES[4]_PREDICATES[0]=Path=/api/mind/blog/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[5]_ID=msvc-daily-activity
+      - SPRING_CLOUD_GATEWAY_ROUTES[5]_URI=lb://msvc-daily-activity
+      - SPRING_CLOUD_GATEWAY_ROUTES[5]_PREDICATES[0]=Path=/api/mind/daily-activity/**
+      - SPRING_CLOUD_GATEWAY_ROUTES[6]_ID=msvc-notification
+      - SPRING_CLOUD_GATEWAY_ROUTES[6]_URI=lb://msvc-notification
+      - SPRING_CLOUD_GATEWAY_ROUTES[6]_PREDICATES[0]=Path=/api/mind/notification/**
     networks:
       - spring-cloud-network
 
@@ -324,13 +399,54 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-keycloak}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_MULTIPLE_DATABASES=blogs,emergency
+      - POSTGRES_MULTIPLE_DATABASES=blogs,emergency,daily_activity,notifications
       - POSTGRES_HOST_AUTH_METHOD=trust  # Añade esta línea para desarrollo
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: zookeeper
+    networks:
+      - spring-cloud-network
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    networks:
+      - spring-cloud-network
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    container_name: kafdrop
+    depends_on:
+      - kafka
+    networks:
+      - spring-cloud-network
+    ports:
+      - "19000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka:9092
+      JVM_OPTS: "-Xms32M -Xmx64M"
+      SERVER_SERVLET_CONTEXTPATH: "/"
 
 #  grafana:
 #    image: grafana/grafana:latest

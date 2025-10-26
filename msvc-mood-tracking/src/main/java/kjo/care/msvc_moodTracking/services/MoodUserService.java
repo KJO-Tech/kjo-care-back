@@ -26,4 +26,6 @@ public interface MoodUserService {
 
     List<Object[]> countUsersByDayInLastMonth();
 
+    long countMoodLogDays(String userId);
+
 }
