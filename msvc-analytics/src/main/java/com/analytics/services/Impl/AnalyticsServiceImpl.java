@@ -1,13 +1,7 @@
 package com.analytics.services.Impl;
 
-import com.analytics.DTOs.DailyBlogCountDto;
-import com.analytics.DTOs.DailyMoodUserCountDto;
-import com.analytics.DTOs.DashboardStatsDto;
-import com.analytics.DTOs.MetricData;
-import com.analytics.client.AuthClient;
-import com.analytics.client.BlogClient;
-import com.analytics.client.EmergencyClient;
-import com.analytics.client.MoodClient;
+import com.analytics.DTOs.*;
+import com.analytics.client.*;
 import com.analytics.services.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +24,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final BlogClient blogClient;
     private final MoodClient moodClient;
     private final EmergencyClient emergencyClient;
+    private final EmergencyFeignClient emergencyFeignClient;
 
     @Cacheable(value = "dashboardStats", key = "'main'")
     @Override
@@ -244,6 +239,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
                     return dailyCounts;
                 });
+    }
+
+    @Override
+    public Mono<ResourceStatsDto> getResourceStats() {
+        return Mono.fromCallable(() ->
+                emergencyFeignClient.getEmergencyStats().getResult()
+        );
     }
 
 }

@@ -7,13 +7,14 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Builder
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class BlogResponseDto {
-    private Long id;
+    private UUID id;
     private UserInfoDto author;
     private CategoryResponseDto category;
     private String title;

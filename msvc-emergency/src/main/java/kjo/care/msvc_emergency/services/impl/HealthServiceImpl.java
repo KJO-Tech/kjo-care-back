@@ -14,6 +14,7 @@ import kjo.care.msvc_emergency.repositories.EmergencyRepository;
 import kjo.care.msvc_emergency.repositories.HealthRepository;
 import kjo.care.msvc_emergency.services.HealthService;
 import kjo.care.msvc_emergency.services.IUploadImageService;
+import kjo.care.msvc_emergency.utils.Haversine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.access.AccessDeniedException;
@@ -22,10 +23,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Log4j2
@@ -39,10 +44,19 @@ public class HealthServiceImpl implements HealthService {
     private final IUploadImageService uploadService;
 
     @Override
-    public List<HealthResponseDto> findAll() {
-        List<HealthCenter> entities = healthRepository.findAll();
-        return healthMapper.entitiesToDtos(entities);
+    public Page<HealthResponseDto> findAll(int page, int size, String search) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<HealthCenter> centersPage;
+        if (search != null && !search.trim().isEmpty()) {
+            centersPage = healthRepository.findByNameContainingIgnoreCase(search, pageable);
+        } else {
+            centersPage = healthRepository.findAll(pageable);
+        }
+
+        return centersPage.map(healthMapper::entityToDto);
     }
+
 
     @Override
     public List<HealthResponseDto> findAllActive() {
@@ -53,7 +67,7 @@ public class HealthServiceImpl implements HealthService {
     }
 
     @Override
-    public HealthResponseDto findById(Long id) {
+    public HealthResponseDto findById(UUID id) {
         HealthCenter healthCenter = findHealthCenter(id);
         boolean isAdmin = isAdminFromJwt();
         boolean isActive = healthCenter.getStatus().equals(StatusHealth.ACTIVE);
@@ -76,7 +90,7 @@ public class HealthServiceImpl implements HealthService {
     }
 
     @Override
-    public HealthResponseDto update(Long id, HealthRequestDto dto, String userId) {
+    public HealthResponseDto update(UUID id, HealthRequestDto dto, String userId) {
         HealthCenter healthCenter = findHealthCenter(id);
 
         boolean isAdmin = isAdminFromJwt();
@@ -91,7 +105,7 @@ public class HealthServiceImpl implements HealthService {
     }
 
     @Override
-    public void delete(Long id, String userId) {
+    public void delete(UUID id, String userId) {
         HealthCenter healthCenter = findHealthCenter(id);
         boolean isAdmin = isAdminFromJwt();
         if (!isAdmin && !healthCenter.getUserId().equals(userId)) {
@@ -121,7 +135,7 @@ public class HealthServiceImpl implements HealthService {
         return healthRepository.countByCreatedDateBetween(startOfPreviousMonth, endOfPreviousMonth);
     }
 
-    private HealthCenter findHealthCenter(Long id) {
+    private HealthCenter findHealthCenter(UUID id) {
         return healthRepository.findById(id).orElseThrow(() -> {
             return new EntityNotFoundException("Centro de salud con id :" + id + " no encontrado");
         });
@@ -141,4 +155,20 @@ public class HealthServiceImpl implements HealthService {
         }
         return false;
     }
+
+
+
+    @Override
+    public List<HealthResponseDto> findNearby(double lat, double lon, double distanceKm) {
+            List<HealthCenter> allCenters = healthRepository.findAll();
+
+            return allCenters.stream()
+                    .filter(center -> Haversine.distance(
+                            lat, lon,
+                            center.getLatitude(),
+                            center.getLongitude()
+                    ) <= distanceKm)
+                    .map(HealthMapper::toDto)
+                    .toList();
+        }
 }

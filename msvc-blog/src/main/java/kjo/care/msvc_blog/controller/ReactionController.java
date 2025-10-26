@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import kjo.care.msvc_blog.dto.*;
 import kjo.care.msvc_blog.services.ReactionService;
+import kjo.care.msvc_blog.utils.ResponseBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/reaction")
@@ -33,29 +35,29 @@ public class ReactionController {
     @ApiResponse(responseCode = "200", description = "Reacciones obtenidas correctamente")
     @ApiResponse(responseCode = "204", description = "No se encontraron Reacciones")
     @GetMapping("/all")
-    public ResponseEntity<?> findAll() {
+    public ResponseEntity<ApiResponseDto<List<ReactionResponseDto>>> findAll() {
         List<ReactionResponseDto> response = reactionService.findAllReactions();
-        return ResponseEntity.ok(response);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Reacciones obtenidas correctamente", true, response);
     }
 
     @Operation(summary = "Crear una Reaccion", description = "Crea una Reaccion")
     @ApiResponse(responseCode = "201", description = "Like creada correctamente")
     @ApiResponse(responseCode = "400", description = "No se pudo dar like")
     @PostMapping("")
-    public ResponseEntity<ReactionResponseDto> create(@RequestBody @Validated ReactionRequestDto reaction, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponseDto<ReactionResponseDto>> create(@RequestBody @Validated ReactionRequestDto reaction, @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         ReactionResponseDto create = reactionService.saveReaction(reaction, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(create);
+        return ResponseBuilder.buildResponse(HttpStatus.CREATED, "Reaccion creada correctamente", true, create);
     }
 
     @Operation(summary = "Eliminar reaccion", description = "Elimina una Reaccion")
     @ApiResponse(responseCode = "204", description = "Reaccion eliminada correctamente")
     @ApiResponse(responseCode = "404", description = "No se encontró la reaccion")
     @DeleteMapping("/{blogId}")
-    public ResponseEntity<?> delete(@PathVariable @Positive(message = "El ID debe ser positivo") Long blogId, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponseDto<Object>> delete(@PathVariable UUID blogId, @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         reactionService.deleteReaction(blogId, userId);
-        return ResponseEntity.noContent().build();
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Reaccion eliminada correctamente", true, null);
     }
 
 }

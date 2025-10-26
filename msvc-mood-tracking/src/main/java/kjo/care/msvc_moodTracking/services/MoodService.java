@@ -6,17 +6,18 @@ import kjo.care.msvc_moodTracking.DTOs.MoodDTOs.MoodResponseDto;
 import kjo.care.msvc_moodTracking.DTOs.MoodUserDTOs.UserMoodDTO;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface MoodService {
     MoodPageResponseDto findAllMoods(int page, int size);
 
-    MoodResponseDto findMoodById(Long id);
+    MoodResponseDto findMoodById(UUID id);
 
     MoodResponseDto saveMood(MoodRequestDto dto);
 
-    MoodResponseDto updateMood(Long id, MoodRequestDto dto);
+    MoodResponseDto updateMood(UUID id, MoodRequestDto dto);
 
-    void deleteMood(Long id);
+    void deleteMood(UUID id);
 
-    MoodResponseDto toggleMoodStatus(Long id);
+    MoodResponseDto toggleMoodStatus(UUID id);
 }

@@ -1,14 +1,17 @@
 package com.analytics.controllers;
 
+import com.analytics.DTOs.ApiResponseDto;
 import com.analytics.DTOs.DailyBlogCountDto;
 import com.analytics.DTOs.DailyMoodUserCountDto;
 import com.analytics.DTOs.DashboardStatsDto;
 import com.analytics.services.AnalyticsService;
+import com.analytics.utils.ResponseBuilder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,36 +39,37 @@ public class AnalyticsController {
     @Operation(summary = "Obtener estadísticas del dashboard", description = "Devuelve estadísticas generales para el dashboard")
     @ApiResponse(responseCode = "200", description = "Estadísticas obtenidas correctamente")
     @GetMapping("/dashboard-stats")
-    public Mono<ResponseEntity<DashboardStatsDto>> getDashboardStats() {
+    public Mono<ResponseEntity<ApiResponseDto<DashboardStatsDto>>> getDashboardStats() {
         log.info("Petición para obtener estadísticas del dashboard");
+
         return analyticsService.getDashboardStats()
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.noContent().build());
+                .map(stats -> ResponseBuilder.buildResponse(HttpStatus.OK, "Estadísticas obtenidas correctamente", true, stats))
+                .switchIfEmpty(Mono.just(
+                        ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No hay estadísticas disponibles", true, null)
+                ));
     }
 
     @Operation(summary = "Obtener conteo diario de blogs del mes actual", description = "Devuelve el número de blogs publicados por día durante el mes actual")
     @ApiResponse(responseCode = "200", description = "Conteo diario obtenido correctamente")
     @GetMapping("/blogs/daily-current-month")
-    public Mono<ResponseEntity<List<DailyBlogCountDto>>> getDailyBlogsCurrentMonth() {
+    public Mono<ResponseEntity<ApiResponseDto<List<DailyBlogCountDto>>>> getDailyBlogsCurrentMonth() {
         log.info("Petición para obtener cantidad de blogs por día del mes actual");
         return analyticsService.getDailyBlogsCurrentMonth()
-                .map(data -> {
-                    log.info("Total de registros de blogs diarios: {}", data.size());
-                    return ResponseEntity.ok(data);
-                })
-                .defaultIfEmpty(ResponseEntity.noContent().build());
+                .map(stats -> ResponseBuilder.buildResponse(HttpStatus.OK, "Estadísticas obtenidas correctamente", true, stats))
+                .switchIfEmpty(Mono.just(
+                        ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No hay estadísticas disponibles", true, null)
+                ));
     }
 
     @Operation(summary = "Obtener conteo diario de usuarios con estados de ánimo del último mes", description = "Devuelve el número de usuarios distintos que registraron su estado de ánimo por día durante el último mes")
     @ApiResponse(responseCode = "200", description = "Conteo diario obtenido correctamente")
     @GetMapping("/moods/daily-users-last-month")
-    public Mono<ResponseEntity<List<DailyMoodUserCountDto>>> getDailyMoodUsersLastMonth() {
+    public Mono<ResponseEntity<ApiResponseDto<List<DailyMoodUserCountDto>>>> getDailyMoodUsersLastMonth() {
         log.info("Petición para obtener cantidad de usuarios con estados de ánimo por día del último mes");
         return analyticsService.getDailyMoodUsersLastMonth()
-                .map(data -> {
-                    log.info("Total de registros de usuarios diarios con estados de ánimo: {}", data.size());
-                    return ResponseEntity.ok(data);
-                })
-                .defaultIfEmpty(ResponseEntity.noContent().build());
+                .map(stats -> ResponseBuilder.buildResponse(HttpStatus.OK, "Estadísticas obtenidas correctamente", true, stats))
+                .switchIfEmpty(Mono.just(
+                        ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No hay estadísticas disponibles", true, null)
+                ));
     }
 }

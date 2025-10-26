@@ -7,13 +7,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ReactionResponseDto {
-    private Long blogId;
+    private UUID blogId;
     private UserInfoDto userId;
     private String type;
 

@@ -4,16 +4,17 @@ import kjo.care.msvc_blog.dto.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 public interface BlogService {
     List<BlogOverviewDto> findAllBlogs();
     List<BlogResponseDto> findAllBlogsPublished();
     BlogPageResponseDto findBlogs(int page, int size);
-    BlogResponseDto findBlogById(Long id);
-    BlogDetailsDto findBlogDetails(Long id);
+    BlogResponseDto findBlogById(UUID id);
+    BlogDetailsDto findBlogDetails(UUID id);
     BlogResponseDto saveBlog(BlogRequestDto dto, String userId);
-    BlogResponseDto updateBlog (Long id , BlogRequestDto dto, String authenticatedUserId);
-    void deleteBlog(Long id,  String authenticatedUserId);
+    BlogResponseDto updateBlog (UUID id , BlogRequestDto dto, String authenticatedUserId);
+    void deleteBlog(UUID id,  String authenticatedUserId);
     Long countBlogs();
     Long countBlogsPreviousMonth();
     List<Object[]> countBlogsByDayBetweenDates(String state, LocalDate startDate, LocalDate endDate);

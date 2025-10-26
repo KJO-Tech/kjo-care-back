@@ -8,13 +8,14 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class EmergencyResponseDto {
-    private Long id;
+    private UUID id;
     private UserInfoDto user;
     private String name;
     private String description;

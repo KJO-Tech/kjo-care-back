@@ -33,15 +33,8 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-
+import java.util.*;
 import java.util.function.Function;
-
 import java.util.stream.Collectors;
 
 @Service
@@ -91,7 +84,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "blogs", key = "#id")
-    public BlogResponseDto findBlogById(Long id) {
+    public BlogResponseDto findBlogById(UUID id) {
         Blog blog = findExistBlog(id);
         List<Blog> singleBlogList = List.of(blog);
         List<UserInfoDto> users = fetchUsersForBlogs(singleBlogList);
@@ -104,7 +97,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "blogs", key = "#id")
-    public BlogDetailsDto findBlogDetails(Long id) {
+    public BlogDetailsDto findBlogDetails(UUID id) {
         Blog blog = findExistBlog(id);
 
         List<Blog> singleBlogList = List.of(blog);
@@ -159,7 +152,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Transactional
-    public BlogResponseDto updateBlog(Long id, BlogRequestDto dto, String authenticatedUserId) {
+    public BlogResponseDto updateBlog(UUID id, BlogRequestDto dto, String authenticatedUserId) {
         Blog blog = findExistBlog(id);
 
         boolean isAdmin = isAdminFromJwt();
@@ -184,7 +177,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void deleteBlog(Long id, String authenticatedUserId) {
+    public void deleteBlog(UUID id, String authenticatedUserId) {
         Blog blog = findExistBlog(id);
         boolean isAdmin = isAdminFromJwt();
 
@@ -215,7 +208,7 @@ public class BlogServiceImpl implements BlogService {
         return blogRepository.countByStateAndPublishedDateBetween(BlogState.PUBLICADO, startDate, endDate);
     }
 
-    private Blog findExistBlog(Long id) {
+    private Blog findExistBlog(UUID id) {
         return blogRepository.findByIdWithCategory(id).orElseThrow(() -> {
             return new EntityNotFoundException("Blog con id :" + id + " no encontrado");
         });
@@ -295,9 +288,9 @@ public class BlogServiceImpl implements BlogService {
     }
 
     private List<BlogOverviewDto> processBlogsAndBuildOverviews(List<Blog> blogs) {
-        List<Long> blogIds = blogs.stream().map(Blog::getId).toList();
-        Map<Long, Long> reactionCounts = getReactionCounts(blogIds);
-        Map<Long, Long> commentCounts = getCommentCounts(blogIds);
+        List<UUID> blogIds = blogs.stream().map(Blog::getId).toList();
+        Map<UUID, Long> reactionCounts = getReactionCounts(blogIds);
+        Map<UUID, Long> commentCounts = getCommentCounts(blogIds);
 
         List<BlogResponseDto> blogDtos = blogMapper.entitiesToDtos(blogs, fetchUsersForBlogs(blogs));
 
@@ -318,7 +311,7 @@ public class BlogServiceImpl implements BlogService {
                 .toList();
     }
 
-    private BlogOverviewDto buildBlogOverview(BlogResponseDto dto, Map<Long, Long> reactionCounts, Map<Long, Long> commentCounts) {
+    private BlogOverviewDto buildBlogOverview(BlogResponseDto dto, Map<UUID, Long> reactionCounts, Map<UUID, Long> commentCounts) {
         return BlogOverviewDto.builder()
                 .blog(dto)
                 .reactionCount(reactionCounts.getOrDefault(dto.getId(), 0L))
@@ -326,19 +319,20 @@ public class BlogServiceImpl implements BlogService {
                 .build();
     }
 
-    private Map<Long, Long> getReactionCounts(List<Long> blogIds) {
+    private Map<UUID, Long> getReactionCounts(List<UUID> blogIds) {
         return reactionRepository.countByBlogIds(blogIds).stream()
                 .collect(Collectors.toMap(
-                        arr -> (Long) arr[0],
+                        arr -> (UUID) arr[0],
                         arr -> (Long) arr[1]
                 ));
     }
 
-    private Map<Long, Long> getCommentCounts(List<Long> blogIds) {
+    private Map<UUID, Long> getCommentCounts(List<UUID> blogIds) {
         return commentRepository.countByBlogIds(blogIds).stream()
                 .collect(Collectors.toMap(
-                        arr -> (Long) arr[0],
+                        arr -> (UUID) arr[0],
                         arr -> (Long) arr[1]
                 ));
     }
+
 }

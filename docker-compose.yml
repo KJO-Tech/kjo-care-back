@@ -115,6 +115,7 @@ services:
       eureka-server:
         condition: service_healthy
     environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mood_tracking
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - SPRING_CLOUD_CONFIG_FAIL_FAST=true

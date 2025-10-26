@@ -74,4 +74,16 @@ public class HealthMapper {
                 })
                 .toList();
     }
+
+        public static HealthResponseDto toDto(HealthCenter entity) {
+            HealthResponseDto dto = new HealthResponseDto();
+            dto.setId(entity.getId());
+            dto.setName(entity.getName());
+            dto.setAddress(entity.getAddress());
+            dto.setPhone(entity.getPhone());
+            dto.setLatitude(entity.getLatitude());
+            dto.setLongitude(entity.getLongitude());
+                dto.setStatus(entity.getStatus().name());
+            return dto;
+        }
 }

@@ -7,6 +7,7 @@ import kjo.care.msvc_emergency.dto.StatsResponseDto;
 import kjo.care.msvc_emergency.dto.UserInfoDto;
 import kjo.care.msvc_emergency.entities.EmergencyResource;
 import kjo.care.msvc_emergency.enums.StatusEmergency;
+import kjo.care.msvc_emergency.enums.StatusHealth;
 import kjo.care.msvc_emergency.exceptions.EntityNotFoundException;
 import kjo.care.msvc_emergency.mappers.EmergencyMapper;
 import kjo.care.msvc_emergency.repositories.EmergencyRepository;
@@ -23,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Log4j2
@@ -67,7 +69,7 @@ public class EmergencyServiceImpl implements EmergencyService {
     }
 
     @Override
-    public EmergencyResponseDto findById(Long id) {
+    public EmergencyResponseDto findById(UUID id) {
         emergencyRepository.incrementAccessCount(id);
         EmergencyResource emergencyResource = findExistEmergencyResource(id);
         boolean isAdmin = isAdminFromJwt();
@@ -93,7 +95,7 @@ public class EmergencyServiceImpl implements EmergencyService {
     }
 
     @Override
-    public EmergencyResponseDto update(Long id, EmergencyRequestDto dto, String userId) {
+    public EmergencyResponseDto update(UUID id, EmergencyRequestDto dto, String userId) {
         EmergencyResource emergencyResource = findExistEmergencyResource(id);
 
         boolean isAdmin = isAdminFromJwt();
@@ -110,7 +112,7 @@ public class EmergencyServiceImpl implements EmergencyService {
     }
 
     @Override
-    public void delete(Long id, String userId) {
+    public void delete(UUID id, String userId) {
         UserInfoDto user = userClient.findUserById(userId);
         EmergencyResource emergencyResource = findExistEmergencyResource(id);
         boolean isAdmin = isAdminFromJwt();
@@ -123,8 +125,7 @@ public class EmergencyServiceImpl implements EmergencyService {
         emergencyRepository.save(emergencyResource);
     }
 
-
-    private EmergencyResource findExistEmergencyResource(Long id) {
+    private EmergencyResource findExistEmergencyResource(UUID id) {
         return emergencyRepository.findById(id).orElseThrow(() -> {
             return new EntityNotFoundException("Recurso de emergencia con id :" + id + " no encontrado");
         });

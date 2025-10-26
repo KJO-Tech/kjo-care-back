@@ -10,9 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import kjo.care.msvc_blog.dto.*;
 import kjo.care.msvc_blog.services.BlogService;
+import kjo.care.msvc_blog.utils.ResponseBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,10 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/blogs")
@@ -45,82 +42,91 @@ public class BlogController {
     @ApiResponse(responseCode = "204", description = "No se encontraron Blogs")
     @PreAuthorize("hasRole('admin_client_role')")
     @GetMapping("/all")
-    public ResponseEntity<?> findAll() {
+    public ResponseEntity<ApiResponseDto<List<BlogOverviewDto>>> findAll() {
         List<BlogOverviewDto> response = blogService.findAllBlogs();
-        return ResponseEntity.ok(response);
+        if (response.isEmpty()){
+            return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Blogs", true, response);
+        }
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Blogs obtenidos correctamente", true, response);
     }
 
     @Operation(summary = "Obtener todos los blogs Publicados", description = "Devuelve todos los blogs publicados ")
     @ApiResponse(responseCode = "200", description = "Blogs obtenidos correctamente")
     @ApiResponse(responseCode = "204", description = "No se encontraron Blogs")
     @GetMapping("/published")
-    public ResponseEntity<?> findAllPublished() {
+    public ResponseEntity<ApiResponseDto<List<BlogResponseDto>>> findAllPublished() {
         List<BlogResponseDto> response = blogService.findAllBlogsPublished();
-        return ResponseEntity.ok(response);
+        if (response.isEmpty()){
+            return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Blogs publicados", true, response);
+        }
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Blogs publicados obtenidos correctamente", true, response);
     }
 
     @Operation(summary = "Obtener todos los blogs Publicados", description = "Devuelve todos los blogs publicados ")
     @ApiResponse(responseCode = "200", description = "Blogs obtenidos correctamente")
     @ApiResponse(responseCode = "204", description = "No se encontraron Blogs")
     @GetMapping("")
-    public ResponseEntity<BlogPageResponseDto> getAllPublishedBlogs(
+    public ResponseEntity<ApiResponseDto<BlogPageResponseDto>> getAllPublishedBlogs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         BlogPageResponseDto response = blogService.findBlogs(page, size);
-        return ResponseEntity.ok(response);
+        if (response.dto().isEmpty()){
+            return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Blogs publicados", true, response);
+        }
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Blogs publicados obtenidos correctamente", true, response);
     }
 
     @Operation(summary = "Obtener Blog por ID", description = "Devuelve un blog por su ID")
     @ApiResponse(responseCode = "200", description = "Blog obtenido correctamente")
     @ApiResponse(responseCode = "404", description = "Blog no encontrado")
     @GetMapping("/getById/{id}")
-    public ResponseEntity<?> getById(@PathVariable @Positive(message = "El ID debe ser positivo") Long id) {
+    public ResponseEntity<ApiResponseDto<BlogResponseDto>> getById(@PathVariable UUID id) {
         BlogResponseDto response = blogService.findBlogById(id);
-        return ResponseEntity.ok(response);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Blog obtenido correctamente", true, response);
     }
 
     @Operation(summary = "Obtener Detalles de un Blog", description = "Devuelve los detalles de un blog")
     @ApiResponse(responseCode = "200", description = "Detalles obtenidos correctamente")
     @ApiResponse(responseCode = "404", description = "Detalles no encontrados")
     @GetMapping("/{id}")
-    public ResponseEntity<?> getDetailsById(@PathVariable @Positive(message = "El ID debe ser positivo") Long id) {
+    public ResponseEntity<ApiResponseDto<BlogDetailsDto>> getDetailsById(@PathVariable UUID id) {
         BlogDetailsDto response = blogService.findBlogDetails(id);
-        return ResponseEntity.ok(response);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Detalles del blog obtenidos correctamente", true, response);
     }
 
     @Operation(summary = "Crear un Blog", description = "Crea una blog")
     @ApiResponse(responseCode = "201", description = "Blog creado correctamente")
     @ApiResponse(responseCode = "400", description = "No se pudo crear el blog")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> create(
-            @Parameter(description = "Datos del blog", content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = BlogRequestDto.class))) @ModelAttribute @Validated BlogRequestDto blog,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponseDto<BlogResponseDto>> create(@Parameter(description = "Datos del blog", content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = BlogRequestDto.class)))
+                                        @ModelAttribute @Validated BlogRequestDto blog,
+                                        @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         BlogResponseDto createBlog = blogService.saveBlog(blog, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createBlog);
+        return ResponseBuilder.buildResponse(HttpStatus.CREATED, "Blog creado correctamente", true, createBlog);
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Actualizar un blog", description = "Actualiza solo los campos proporcionados")
     @ApiResponse(responseCode = "200", description = "Blog actualizado correctamente")
     @ApiResponse(responseCode = "404", description = "Blog no encontrada")
-    public ResponseEntity<?> update(@PathVariable @Positive(message = "El ID debe ser positivo") Long id,
-            @Parameter(description = "Datos del blog", content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = BlogRequestDto.class))) @ModelAttribute @Validated BlogRequestDto blog,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponseDto<BlogResponseDto>> update(@PathVariable UUID id
+            , @Parameter(description = "Datos del blog", content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = BlogRequestDto.class)))
+            @ModelAttribute @Validated BlogRequestDto blog
+            , @AuthenticationPrincipal Jwt jwt) {
         String authenticatedUserId = jwt.getSubject();
-        BlogResponseDto updated = blogService.updateBlog(id, blog, authenticatedUserId);
-        return ResponseEntity.ok(updated);
+        BlogResponseDto updated = blogService.updateBlog(id, blog,authenticatedUserId);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Blog actualizado correctamente", true, updated);
     }
 
     @Operation(summary = "Eliminar una blog por ID", description = "Elimina un blog por su ID")
     @ApiResponse(responseCode = "204", description = "Blog eliminado correctamente")
     @ApiResponse(responseCode = "404", description = "No se encontró el blog")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable @Positive(message = "El ID debe ser positivo") Long id,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponseDto<Object>> delete(@PathVariable UUID id,  @AuthenticationPrincipal Jwt jwt) {
         String authenticatedUserId = jwt.getSubject();
         blogService.deleteBlog(id, authenticatedUserId);
-        return ResponseEntity.noContent().build();
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Blog eliminado correctamente", true, null);
     }
 
     @Operation(summary = "Obtener cantidad total de blogs", description = "Devuelve el número total de blogs publicados")

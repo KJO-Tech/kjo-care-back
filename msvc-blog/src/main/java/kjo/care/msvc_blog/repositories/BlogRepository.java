@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Date;
@@ -17,7 +19,7 @@ import java.util.List;
 
 
 @Repository
-public interface BlogRepository extends JpaRepository<Blog, Long> {
+public interface BlogRepository extends JpaRepository<Blog, UUID> {
     Page<Blog> findByState(BlogState state, Pageable pageable);
 
     Long countByState(BlogState state);
@@ -43,6 +45,5 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
     Page<Blog> findByStateWithCategory(@Param("state") BlogState state, Pageable pageable);
 
     @Query("SELECT b FROM Blog b LEFT JOIN FETCH b.category WHERE b.id = :id")
-    Optional<Blog> findByIdWithCategory(@Param("id") Long id);
+    Optional<Blog> findByIdWithCategory(@Param("id") UUID id);
 }
-

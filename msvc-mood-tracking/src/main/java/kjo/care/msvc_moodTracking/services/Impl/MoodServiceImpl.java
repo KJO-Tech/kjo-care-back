@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,7 +49,7 @@ public class MoodServiceImpl implements MoodService {
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "moods", key = "#id")
-    public MoodResponseDto findMoodById(Long id) {
+    public MoodResponseDto findMoodById(UUID id) {
         log.info("Buscando mood con id {}", id);
         MoodEntity mood = findExistMoodById(id);
         MoodResponseDto response = moodMapper.entityToDto(mood);
@@ -67,7 +68,7 @@ public class MoodServiceImpl implements MoodService {
 
     @Transactional
     @Override
-    public MoodResponseDto updateMood(Long id, MoodRequestDto dto) {
+    public MoodResponseDto updateMood(UUID id, MoodRequestDto dto) {
         log.info("Actualizando mood con id {}", id);
         MoodEntity mood = findExistMoodById(id);
         modelMapper.map(dto, mood);
@@ -78,14 +79,14 @@ public class MoodServiceImpl implements MoodService {
 
     @Transactional
     @Override
-    public void deleteMood(Long id) {
+    public void deleteMood(UUID id) {
         MoodEntity mood = findExistMoodById(id);
         moodRepository.delete(mood);
         log.info("Mood eliminado : id {}", id);
     }
 
     @Override
-    public MoodResponseDto toggleMoodStatus(Long id) {
+    public MoodResponseDto toggleMoodStatus(UUID id) {
         log.info("Cambiando estado activo del mood con id {}", id);
         MoodEntity mood = findExistMoodById(id);
         mood.setIsActive(!mood.getIsActive());
@@ -94,7 +95,7 @@ public class MoodServiceImpl implements MoodService {
         return moodMapper.entityToDto(mood);
     }
 
-    private MoodEntity findExistMoodById(Long id) {
+    private MoodEntity findExistMoodById(UUID id) {
         return moodRepository.findById(id).orElseThrow(() -> {
             log.warn("Teacher con id {} no econtrado", id);
             return new MoodEntityNotFoundException("Mood con id :" + id + " no encontrado");

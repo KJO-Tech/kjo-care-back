@@ -2,14 +2,17 @@ package kjo.care.msvc_moodTracking.DTOs.MoodDTOs;
 
 import lombok.*;
 
+import java.util.UUID;
+
 @Builder
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class MoodResponseDto {
-    private Long id;
+    private UUID id;
     private String name;
     private String description;
+    private Integer value;
 //    private String state;
     private String image;
     private String color;
