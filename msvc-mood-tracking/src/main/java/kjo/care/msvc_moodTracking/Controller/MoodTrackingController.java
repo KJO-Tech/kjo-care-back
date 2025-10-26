@@ -112,11 +112,7 @@ public class MoodTrackingController {
     public ResponseEntity<Double> getAverageMoodValueByUserId(@PathVariable String userId) {
         log.info("Petición para obtener el promedio del valor de los estados de ánimo para el usuario: {}", userId);
         Double averageMood = moodUserService.getAverageMood(userId);
-        if (averageMood == null) {
-            log.info("No se encontraron estados de ánimo para el usuario: {}", userId);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
         log.info("Promedio de estados de ánimo para el usuario {} es: {}", userId, averageMood);
-        return new ResponseEntity<>(averageMood, HttpStatus.OK);
+        return ResponseEntity.ok(averageMood);
     }
 }
