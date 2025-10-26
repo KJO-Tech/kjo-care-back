@@ -13,6 +13,7 @@ import java.util.UUID;
 public class UserMoodDTO {
     private UUID id;
     private UserDTO user;
+    private String description;
     private MoodResponseDto mood;
     private LocalDateTime recordedDate;
 }

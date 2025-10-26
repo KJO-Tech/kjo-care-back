@@ -39,6 +39,27 @@ public class MoodClient {
                 .bodyToMono(Long.class);
     }
 
+    public Mono<Double> getAverageMood(String userId) {
+        return webClientBuilder
+                .baseUrl(moodServiceUrl)
+                .build()
+                .get()
+                .uri("/average-mood/{userId}", userId)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> {
+                                    log.error("Error getting average mood for user {}: {}", userId, errorBody);
+                                    return Mono.error(new RuntimeException("Error getting average mood: " + errorBody));
+                                })
+                )
+                .bodyToMono(Double.class)
+                .onErrorResume(error -> {
+                    log.warn("Could not get average mood for user {}, returning default value 0.0. Error: {}", userId, error.getMessage());
+                    return Mono.just(0.0);
+                });
+    }
+
     public Mono<Long> getTotalMoods() {
         // Método existente
         return webClientBuilder.build()

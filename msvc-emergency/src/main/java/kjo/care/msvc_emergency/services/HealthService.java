@@ -4,12 +4,13 @@ import kjo.care.msvc_emergency.dto.EmergencyRequestDto;
 import kjo.care.msvc_emergency.dto.EmergencyResponseDto;
 import kjo.care.msvc_emergency.dto.HealthRequestDto;
 import kjo.care.msvc_emergency.dto.HealthResponseDto;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface HealthService {
-    List<HealthResponseDto> findAll();
+    Page<HealthResponseDto> findAll(int page, int size, String search);
     List<HealthResponseDto> findAllActive();
     List<HealthResponseDto> findNearby(double lat, double lon, double distanceKm);
     HealthResponseDto findById(UUID id);

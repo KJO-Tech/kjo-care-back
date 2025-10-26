@@ -13,4 +13,5 @@ public class DashboardSummaryDTO {
     private DailyActivitySummaryDTO dailyActivitySummary;
     private long moodLogDays;
     private long averageBlogLikes;
+    private Double averageMood;
 }

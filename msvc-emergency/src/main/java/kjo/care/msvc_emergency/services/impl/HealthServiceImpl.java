@@ -23,6 +23,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -41,10 +44,19 @@ public class HealthServiceImpl implements HealthService {
     private final IUploadImageService uploadService;
 
     @Override
-    public List<HealthResponseDto> findAll() {
-        List<HealthCenter> entities = healthRepository.findAll();
-        return healthMapper.entitiesToDtos(entities);
+    public Page<HealthResponseDto> findAll(int page, int size, String search) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<HealthCenter> centersPage;
+        if (search != null && !search.trim().isEmpty()) {
+            centersPage = healthRepository.findByNameContainingIgnoreCase(search, pageable);
+        } else {
+            centersPage = healthRepository.findAll(pageable);
+        }
+
+        return centersPage.map(healthMapper::entityToDto);
     }
+
 
     @Override
     public List<HealthResponseDto> findAllActive() {

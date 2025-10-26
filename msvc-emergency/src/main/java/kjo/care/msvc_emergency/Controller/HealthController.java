@@ -13,6 +13,7 @@ import kjo.care.msvc_emergency.services.HealthService;
 import kjo.care.msvc_emergency.utils.ResponseBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,18 +37,25 @@ public class HealthController {
 
     private final HealthService healthService;
 
-    @Operation(summary = "Obtener todos los Centros de Salud", description = "Devuelve todos los centros de salud existentes")
+    @Operation(summary = "Obtener todos los Centros de Salud (paginados y filtrados)",
+            description = "Devuelve todos los centros de salud paginados y opcionalmente filtrados por nombre")
     @ApiResponse(responseCode = "200", description = "Centros de Salud obtenidos correctamente")
     @ApiResponse(responseCode = "204", description = "No se encontraron los Centros de Salud")
     @PreAuthorize("hasRole('admin_client_role')")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponseDto<List<HealthResponseDto>>> findAll() {
-        List<HealthResponseDto> response = healthService.findAll();
+    public ResponseEntity<ApiResponseDto<Page<HealthResponseDto>>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
+            var response = healthService.findAll(page, size, search);
+
         if (response.isEmpty()){
-            return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Centros de Salud", true, response);
+            return ResponseBuilder.buildResponse(HttpStatus.OK, "No se encontraron los Centros de Salud", true, response);
         }
-        return ResponseBuilder.buildResponse(HttpStatus.OK, "Centros de Salud obtenidos correctamente", true, response);
+        return ResponseBuilder.buildResponse(HttpStatus.OK,
+                "Centros de Salud obtenidos correctamente", true, response);
     }
+
 
     @Operation(summary = "Obtener todos los Centros de Salud", description = "Devuelve todos los centros de salud activos")
     @ApiResponse(responseCode = "200", description = "Centros de Salud obtenidos correctamente")

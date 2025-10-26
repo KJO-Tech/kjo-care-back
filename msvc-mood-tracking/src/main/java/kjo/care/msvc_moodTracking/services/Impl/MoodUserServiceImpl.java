@@ -23,6 +23,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.IsoFields;
 import java.util.*;
@@ -75,6 +76,7 @@ public class MoodUserServiceImpl implements MoodUserService {
                         .map(userDTO -> UserMoodDTO.builder()
                                 .id(moodUser.getId())
                                 .user(userDTO)
+                                .description(moodUser.getDescription())
                                 .mood(modelMapper.map(moodUser.getMood(), MoodResponseDto.class))
                                 .recordedDate(moodUser.getRecordedDate())
                                 .build())
@@ -110,6 +112,7 @@ public class MoodUserServiceImpl implements MoodUserService {
                 .userId(userId)
                 .mood(mood)
                 .recordedDate(LocalDateTime.now())
+                .description(moodUserRequestDto.description())
                 .build();
 
         MoodUser savedMoodUser = moodUserRepository.save(moodUser);
@@ -419,4 +422,16 @@ public class MoodUserServiceImpl implements MoodUserService {
         log.info("Contando los días de registro de estado de ánimo para el usuario: {}", userId);
         return moodUserRepository.countDistinctDaysByUserId(userId);
     }
+
+    @Override
+    public Double getAverageMood(String userId) {
+        log.info("Calculando el promedio de estados de ánimo para el usuario: {}", userId);
+        Double average = moodUserRepository.getAverageMoodValueByUserId(userId);
+        if (average == null) {
+            return null;
+        }
+        return Math.round(average * 10.0) / 10.0;
+    }
+
+
 }

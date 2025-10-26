@@ -12,6 +12,7 @@ public class MoodResponseDto {
     private UUID id;
     private String name;
     private String description;
+    private Integer value;
 //    private String state;
     private String image;
     private String color;

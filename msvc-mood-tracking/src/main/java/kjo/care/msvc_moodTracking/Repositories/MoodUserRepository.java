@@ -29,4 +29,7 @@ public interface MoodUserRepository extends JpaRepository<MoodUser, UUID> {
 
     @Query("SELECT COUNT(DISTINCT FUNCTION('DATE', mu.recordedDate)) FROM MoodUser mu WHERE mu.userId = :userId")
     long countDistinctDaysByUserId(@Param("userId") String userId);
+
+    @Query("SELECT COALESCE(AVG(m.value), 0.0) FROM MoodUser mu JOIN mu.mood m WHERE mu.userId = :userId")
+    Double getAverageMoodValueByUserId(@Param("userId") String userId);
 }

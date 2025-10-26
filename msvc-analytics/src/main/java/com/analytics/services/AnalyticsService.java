@@ -20,4 +20,6 @@ public interface AnalyticsService {
     Mono<AnalyticsSummaryDto> getAnalyticsSummary(String userId);
     Mono<DashboardSummaryDTO> getDashboardSummary(String userId);
 
+    Mono<ResourceStatsDto> getResourceStats();
+
 }

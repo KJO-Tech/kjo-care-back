@@ -79,12 +79,14 @@ public class AnalyticsController {
     )
     @ApiResponse(responseCode = "200", description = "Resumen de analíticas obtenido correctamente")
     @GetMapping("/summary")
-    public Mono<ResponseEntity<AnalyticsSummaryDto>> getAnalyticsSummary(
+    public Mono<ResponseEntity<ApiResponseDto<AnalyticsSummaryDto>>> getAnalyticsSummary(
             @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         return analyticsService.getAnalyticsSummary(userId)
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .map(stats -> ResponseBuilder.buildResponse(HttpStatus.OK, "Estadísticas obtenidas correctamente", true, stats ))
+                .switchIfEmpty(Mono.just(
+                        ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No hay estadísticas disponibles", true, null)
+                ));
     }
 
     @Operation(
@@ -93,11 +95,13 @@ public class AnalyticsController {
     )
     @ApiResponse(responseCode = "200", description = "Resumen de analíticas obtenido correctamente")
     @GetMapping("/summary-dashboard")
-    public Mono<ResponseEntity<DashboardSummaryDTO>> getDashboardSummary(
+    public Mono<ResponseEntity<ApiResponseDto<DashboardSummaryDTO>>> getDashboardSummary(
             @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         return analyticsService.getDashboardSummary(userId)
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .map(stats -> ResponseBuilder.buildResponse(HttpStatus.OK, "Estadísticas obtenidas correctamente", true, stats ))
+                .switchIfEmpty(Mono.just(
+                        ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No hay estadísticas disponibles", true, null)
+                ));
     }
 }

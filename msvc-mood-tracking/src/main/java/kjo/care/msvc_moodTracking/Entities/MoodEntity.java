@@ -29,6 +29,8 @@ public class MoodEntity {
 //    @Enumerated(EnumType.STRING)
 //    @Column(name = "state")
 //    private MoodState state;
+    @Column(name = "value")
+    private Integer value;
     @Column(name = "image")
     private String image;
     @Column(name = "color")
