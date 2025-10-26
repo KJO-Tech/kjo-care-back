@@ -57,8 +57,6 @@ public class BlogServiceImpl implements BlogService {
     private final IUploadImageService uploadService;
     private final KafkaTemplate<String, NotificationEvent<?>> kafkaTemplate;
 
-    // ... (otros métodos sin cambios)
-
     @Override
     @Transactional
     public BlogResponseDto saveBlog(BlogRequestDto dto, String userId) {
@@ -303,6 +301,24 @@ public class BlogServiceImpl implements BlogService {
 
             return List.of();
         }
+    }
+
+    @Override
+    public BlogAchievementsDto countAchievements(String userId) {
+        Long countBlogs = blogRepository.countByUserId(userId);
+        Long countReactions = reactionRepository.countByUserId(userId);
+        Long countComments = commentRepository.countCommentsByUserId(userId);
+
+        return BlogAchievementsDto.builder()
+                .countBlogs(countBlogs)
+                .countReactions(countReactions)
+                .countComments(countComments)
+                .build();
+    }
+
+    @Override
+    public Long countAverageBlogLikes(String userId) {
+        return blogRepository.findAverageReactionsByUserId(userId);
     }
 
     private boolean isAdminFromJwt() {

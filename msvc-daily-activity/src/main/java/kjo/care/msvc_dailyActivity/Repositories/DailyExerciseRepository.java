@@ -23,4 +23,7 @@ public interface DailyExerciseRepository extends JpaRepository<DailyExercise, UU
     @Query("SELECT e FROM DailyExercise e WHERE e.category.id = :categoryId AND e.difficulty = :difficulty")
     List<DailyExercise> findByCategoryAndDifficulty(@Param("categoryId") UUID categoryId,
                                                     @Param("difficulty") ExerciseDifficultyType difficulty);
+
+    @Query(value = "SELECT * FROM daily_exercises ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    List<DailyExercise> findRandomExercises(@Param("limit") int limit);
 }

@@ -155,4 +155,16 @@ public class MoodTrackingUserController {
                 log.info("Retornando conteo de usuarios por día para {} días", response.size());
             return ResponseEntity.ok(response);
         }
+
+    @Operation(
+            summary = "Contar los días de registro de estado de ánimo de un usuario",
+            description = "Devuelve el número total de días únicos en los que un usuario ha registrado su estado de ánimo.")
+    @ApiResponse(responseCode = "200", description = "Conteo exitoso")
+    @GetMapping("/mood-log-days/{userId}")
+    public ResponseEntity<Long> getMoodLogDays(@PathVariable String userId) {
+        log.info("Petición para contar los días de registro de estado de ánimo para el usuario {}", userId);
+        long count = moodUserService.countMoodLogDays(userId);
+        return ResponseEntity.ok(count);
+    }
+
 }

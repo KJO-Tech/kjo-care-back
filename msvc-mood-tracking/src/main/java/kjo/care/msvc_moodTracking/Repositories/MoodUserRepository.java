@@ -26,4 +26,7 @@ public interface MoodUserRepository extends JpaRepository<MoodUser, UUID> {
     List<Object[]> countDistinctUsersByDayBetweenDates(
             @Param("startDate") LocalDateTime startDate, 
             @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT COUNT(DISTINCT FUNCTION('DATE', mu.recordedDate)) FROM MoodUser mu WHERE mu.userId = :userId")
+    long countDistinctDaysByUserId(@Param("userId") String userId);
 }

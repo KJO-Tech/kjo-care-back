@@ -44,6 +44,9 @@ microservices:
     url: lb://msvc-emergency
   auth:
     url: lb://msvc-auth
+  daily-activity:
+    url: lb://msvc-daily-activity
+
 
 logging:
   level:

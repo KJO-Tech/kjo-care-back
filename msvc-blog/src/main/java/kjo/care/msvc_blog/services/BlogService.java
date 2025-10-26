@@ -1,6 +1,8 @@
 package kjo.care.msvc_blog.services;
 
+import kjo.care.msvc_blog.dto.BlogAchievementsDto;
 import kjo.care.msvc_blog.dto.BlogDtos.*;
+import org.apache.kafka.common.protocol.types.Field;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,5 +21,7 @@ public interface BlogService {
     Long countBlogs();
     Long countBlogsPreviousMonth();
     List<Object[]> countBlogsByDayBetweenDates(String state, LocalDate startDate, LocalDate endDate);
+    BlogAchievementsDto countAchievements(String userId);
+    Long countAverageBlogLikes(String userId);
 
 }
