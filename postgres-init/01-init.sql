@@ -10,3 +10,9 @@ GRANT ALL PRIVILEGES ON DATABASE emergency TO postgres;
 
 CREATE DATABASE mood_tracking;
 GRANT ALL PRIVILEGES ON DATABASE mood_tracking TO postgres;
+
+CREATE DATABASE daily_activity;
+GRANT ALL PRIVILEGES ON DATABASE daily_activity TO postgres;
+
+CREATE DATABASE notifications;
+GRANT ALL PRIVILEGES ON DATABASE notifications TO postgres;

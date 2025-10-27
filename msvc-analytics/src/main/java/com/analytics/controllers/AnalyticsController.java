@@ -1,9 +1,6 @@
 package com.analytics.controllers;
 
-import com.analytics.DTOs.ApiResponseDto;
-import com.analytics.DTOs.DailyBlogCountDto;
-import com.analytics.DTOs.DailyMoodUserCountDto;
-import com.analytics.DTOs.DashboardStatsDto;
+import com.analytics.DTOs.*;
 import com.analytics.services.AnalyticsService;
 import com.analytics.utils.ResponseBuilder;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,8 +10,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -68,6 +68,38 @@ public class AnalyticsController {
         log.info("Petición para obtener cantidad de usuarios con estados de ánimo por día del último mes");
         return analyticsService.getDailyMoodUsersLastMonth()
                 .map(stats -> ResponseBuilder.buildResponse(HttpStatus.OK, "Estadísticas obtenidas correctamente", true, stats))
+                .switchIfEmpty(Mono.just(
+                        ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No hay estadísticas disponibles", true, null)
+                ));
+    }
+
+    @Operation(
+            summary = "Obtener resumen de analíticas",
+            description = "Devuelve un resumen de los logros del blog y los días de registro de estado de ánimo"
+    )
+    @ApiResponse(responseCode = "200", description = "Resumen de analíticas obtenido correctamente")
+    @GetMapping("/summary")
+    public Mono<ResponseEntity<ApiResponseDto<AnalyticsSummaryDto>>> getAnalyticsSummary(
+            @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        return analyticsService.getAnalyticsSummary(userId)
+                .map(stats -> ResponseBuilder.buildResponse(HttpStatus.OK, "Estadísticas obtenidas correctamente", true, stats ))
+                .switchIfEmpty(Mono.just(
+                        ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No hay estadísticas disponibles", true, null)
+                ));
+    }
+
+    @Operation(
+            summary = "Obtener resumen de analíticas",
+            description = "Devuelve un resumen de datos para el dashboard"
+    )
+    @ApiResponse(responseCode = "200", description = "Resumen de analíticas obtenido correctamente")
+    @GetMapping("/summary-dashboard")
+    public Mono<ResponseEntity<ApiResponseDto<DashboardSummaryDTO>>> getDashboardSummary(
+            @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        return analyticsService.getDashboardSummary(userId)
+                .map(stats -> ResponseBuilder.buildResponse(HttpStatus.OK, "Estadísticas obtenidas correctamente", true, stats ))
                 .switchIfEmpty(Mono.just(
                         ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No hay estadísticas disponibles", true, null)
                 ));

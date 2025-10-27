@@ -26,4 +26,8 @@ public interface MoodUserService {
 
     List<Object[]> countUsersByDayInLastMonth();
 
+    long countMoodLogDays(String userId);
+
+    Double getAverageMood(String userId);
+
 }

@@ -14,8 +14,8 @@ import java.util.UUID;
 public interface MoodUserRepository extends JpaRepository<MoodUser, UUID> {
     List<MoodUser> findByUserId(String userId);
 
-    @Query("SELECT mu FROM MoodUser mu JOIN FETCH mu.mood WHERE mu.userId = :userId")
-    List<MoodUser> findByUserIdWithMood(@Param("userId") String userId);
+    @Query("SELECT mu FROM MoodUser mu JOIN FETCH mu.mood WHERE mu.userId = :userId ORDER BY mu.recordedDate DESC")
+    List<MoodUser> findByUserIdWithMoodOrderByCreatedAtDesc(@Param("userId") String userId);
 
     List<MoodUser> findByRecordedDateAfter(LocalDateTime date);
         @Query(value = "SELECT DATE(recorded_date) as fecha, COUNT(DISTINCT user_id) as cantidad " +
@@ -26,4 +26,10 @@ public interface MoodUserRepository extends JpaRepository<MoodUser, UUID> {
     List<Object[]> countDistinctUsersByDayBetweenDates(
             @Param("startDate") LocalDateTime startDate, 
             @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT COUNT(DISTINCT FUNCTION('DATE', mu.recordedDate)) FROM MoodUser mu WHERE mu.userId = :userId")
+    long countDistinctDaysByUserId(@Param("userId") String userId);
+
+    @Query("SELECT COALESCE(AVG(m.value), 0.0) FROM MoodUser mu JOIN mu.mood m WHERE mu.userId = :userId")
+    Double getAverageMoodValueByUserId(@Param("userId") String userId);
 }

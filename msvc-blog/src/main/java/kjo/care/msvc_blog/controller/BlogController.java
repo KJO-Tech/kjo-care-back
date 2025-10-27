@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Positive;
 import kjo.care.msvc_blog.dto.*;
+import kjo.care.msvc_blog.dto.BlogDtos.*;
 import kjo.care.msvc_blog.services.BlogService;
 import kjo.care.msvc_blog.utils.ResponseBuilder;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +45,7 @@ public class BlogController {
     public ResponseEntity<ApiResponseDto<List<BlogOverviewDto>>> findAll() {
         List<BlogOverviewDto> response = blogService.findAllBlogs();
         if (response.isEmpty()){
-            return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Blogs", true, response);
+            return ResponseBuilder.buildResponse(HttpStatus.OK, "No se encontraron los Blogs", true, response);
         }
         return ResponseBuilder.buildResponse(HttpStatus.OK, "Blogs obtenidos correctamente", true, response);
     }
@@ -68,8 +68,10 @@ public class BlogController {
     @GetMapping("")
     public ResponseEntity<ApiResponseDto<BlogPageResponseDto>> getAllPublishedBlogs(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        BlogPageResponseDto response = blogService.findBlogs(page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal Jwt jwt) {
+        String userId = (jwt != null) ? jwt.getSubject() : null;
+        BlogPageResponseDto response = blogService.findBlogs(page, size, userId);
         if (response.dto().isEmpty()){
             return ResponseBuilder.buildResponse(HttpStatus.NO_CONTENT, "No se encontraron los Blogs publicados", true, response);
         }
@@ -89,8 +91,9 @@ public class BlogController {
     @ApiResponse(responseCode = "200", description = "Detalles obtenidos correctamente")
     @ApiResponse(responseCode = "404", description = "Detalles no encontrados")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDto<BlogDetailsDto>> getDetailsById(@PathVariable UUID id) {
-        BlogDetailsDto response = blogService.findBlogDetails(id);
+    public ResponseEntity<ApiResponseDto<BlogDetailsDto>> getDetailsById(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        BlogDetailsDto response = blogService.findBlogDetails(id, userId);
         return ResponseBuilder.buildResponse(HttpStatus.OK, "Detalles del blog obtenidos correctamente", true, response);
     }
 
@@ -129,6 +132,17 @@ public class BlogController {
         return ResponseBuilder.buildResponse(HttpStatus.OK, "Blog eliminado correctamente", true, null);
     }
 
+    @Operation(summary = "Rechazar un blog", description = "Cambia el estado de un blog a RECHAZADO. Solo para administradores.")
+    @ApiResponse(responseCode = "200", description = "Blog rechazado correctamente")
+    @ApiResponse(responseCode = "404", description = "Blog no encontrado")
+    @PutMapping("/{id}/reject")
+    @PreAuthorize("hasRole('admin_client_role')")
+    public ResponseEntity<ApiResponseDto<Object>> rejectBlog(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        String adminId = jwt.getSubject();
+        blogService.rejectBlog(id, adminId);
+        return ResponseBuilder.buildResponse(HttpStatus.OK, "Blog rechazado correctamente", true, null);
+    }
+
     @Operation(summary = "Obtener cantidad total de blogs", description = "Devuelve el número total de blogs publicados")
     @ApiResponse(responseCode = "200", description = "Conteo obtenido correctamente")
     @GetMapping("/count")
@@ -147,6 +161,14 @@ public class BlogController {
         Long count = blogService.countBlogsPreviousMonth();
         log.info("Total de blogs del mes anterior: {}", count);
         return ResponseEntity.ok(new BlogCountDto(count));
+    }
+
+    @Operation(summary = "Obtener logros del servicio blog", description = "Devuelve los logros del servicio blog")
+    @ApiResponse(responseCode = "200", description = "Logros obtenidos correctamente")
+    @GetMapping("/count/achievements/{userId}")
+    public ResponseEntity<BlogAchievementsDto> getAchievements(@PathVariable String userId){
+        BlogAchievementsDto achievements = blogService.countAchievements(userId);
+        return ResponseEntity.ok(achievements);
     }
 
     @Operation(summary = "Obtener conteo de blogs por día entre fechas", description = "API interna para consultas de análisis")
@@ -181,4 +203,13 @@ public class BlogController {
                     .body(Map.of("error", "Error al procesar la consulta", "message", e.getMessage()));
         }
     }
+
+    @Operation(summary = "Obtener promedio de likes en sus blogs ", description = "Devuelve los logros del servicio blog")
+    @ApiResponse(responseCode = "200", description = "Logros obtenidos correctamente")
+    @GetMapping("/count/average-blog-reaction/{userId}")
+    public ResponseEntity<Long> countAverageBlogReaction(@PathVariable String userId) {
+        Long averageBlogLikes = blogService.countAverageBlogLikes(userId);
+        return ResponseEntity.ok(averageBlogLikes);
+    }
+
 }

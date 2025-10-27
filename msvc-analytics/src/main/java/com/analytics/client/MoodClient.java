@@ -4,6 +4,7 @@ import com.analytics.DTOs.MoodCountDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -21,6 +22,43 @@ public class MoodClient {
 
     @Value("${microservices.mood-tracking.url}")
     private String moodServiceUrl;
+
+    public Mono<Long> getMoodLogDays(String userId) {
+        return webClientBuilder
+                .baseUrl(moodServiceUrl)
+                .build()
+                .get()
+                .uri("/user-mood/mood-log-days/{userId}", userId)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(
+                                        new RuntimeException("Error al obtener días de registro de ánimo: " + errorBody)
+                                ))
+                )
+                .bodyToMono(Long.class);
+    }
+
+    public Mono<Double> getAverageMood(String userId) {
+        return webClientBuilder
+                .baseUrl(moodServiceUrl)
+                .build()
+                .get()
+                .uri("/average-mood/{userId}", userId)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> {
+                                    log.error("Error getting average mood for user {}: {}", userId, errorBody);
+                                    return Mono.error(new RuntimeException("Error getting average mood: " + errorBody));
+                                })
+                )
+                .bodyToMono(Double.class)
+                .onErrorResume(error -> {
+                    log.warn("Could not get average mood for user {}, returning default value 0.0. Error: {}", userId, error.getMessage());
+                    return Mono.just(0.0);
+                });
+    }
 
     public Mono<Long> getTotalMoods() {
         // Método existente

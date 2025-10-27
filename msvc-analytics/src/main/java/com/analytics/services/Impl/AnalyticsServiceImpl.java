@@ -25,6 +25,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final MoodClient moodClient;
     private final EmergencyClient emergencyClient;
     private final EmergencyFeignClient emergencyFeignClient;
+    private final DailyActivityClient dailyActivityClient;
+
 
     @Cacheable(value = "dashboardStats", key = "'main'")
     @Override
@@ -240,6 +242,73 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     return dailyCounts;
                 });
     }
+
+    public Mono<AnalyticsSummaryDto> getAnalyticsSummary(String userId) {
+        log.info("Obteniendo resumen de analíticas para el usuario: {}", userId);
+
+        Mono<BlogAchievementsDto> blogAchievementsMono = blogClient.getBlogAchievements(userId)
+                .doOnNext(achievements -> log.info("Logros del blog obtenidos: {}", achievements))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener logros del blog: {}", error.getMessage());
+                    return Mono.just(new BlogAchievementsDto(0L, 0L, 0L)); // Valores por defecto
+                });
+
+        Mono<Long> moodLogDaysMono = moodClient.getMoodLogDays(userId)
+                .doOnNext(days -> log.info("Días de registro de ánimo obtenidos: {}", days))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener días de registro de ánimo: {}", error.getMessage());
+                    return Mono.just(0L); // Valor por defecto
+                });
+
+        return Mono.zip(blogAchievementsMono, moodLogDaysMono)
+                .map(tuple -> new AnalyticsSummaryDto(tuple.getT1(), tuple.getT2()))
+                .doOnSuccess(summary -> log.info("Resumen de analíticas obtenido exitosamente: {}", summary))
+                .doOnError(error -> log.error("Error al obtener el resumen de analíticas: {}", error.getMessage()));
+    }
+
+    @Override
+    public Mono<DashboardSummaryDTO> getDashboardSummary(String userId) {
+        log.info("Obteniendo resumen de analíticas para el usuario: {}", userId);
+
+        Mono<DailyActivitySummaryDTO> activitySummary = dailyActivityClient.getDailyActivitySummary(userId)
+                .doOnNext(activity -> log.info("Datos obtenidos correctamente: {}", activity))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener las actividades: {}", error.getMessage());
+                    return Mono.just(new DailyActivitySummaryDTO(0L, 0L));
+                });
+
+        Mono<Long> moodLogDaysMono = moodClient.getMoodLogDays(userId)
+                .doOnNext(days -> log.info("Días de registro de ánimo obtenidos: {}", days))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener días de registro de ánimo: {}", error.getMessage());
+                    return Mono.just(0L);
+                });
+
+        Mono<Long> averageBlogReaction = blogClient.getAverageBlogReaction(userId)
+                .doOnNext(average -> log.info("Promedio de reacciones de blogs obtenidos: {}", average))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener el promedio de reacciones: {}", error.getMessage());
+                    return Mono.just(0L);
+                });
+
+        Mono<Double> averageMoodMono = moodClient.getAverageMood(userId)
+                .doOnNext(average -> log.info("Promedio de ánimo obtenido: {}", average))
+                .onErrorResume(error -> {
+                    log.error("Error al obtener el promedio de ánimo: {}", error.getMessage());
+                    return Mono.just(0.0);
+                });
+
+        return Mono.zip(activitySummary, moodLogDaysMono, averageBlogReaction, averageMoodMono)
+                .map(tuple -> DashboardSummaryDTO.builder()
+                        .dailyActivitySummary(tuple.getT1())
+                        .moodLogDays(tuple.getT2())
+                        .averageBlogLikes(tuple.getT3())
+                        .averageMood(tuple.getT4())
+                        .build())
+                .doOnSuccess(summary -> log.info("Resumen de analíticas obtenido exitosamente: {}", summary))
+                .doOnError(error -> log.error("Error al obtener el resumen de analíticas: {}", error.getMessage()));
+    }
+
 
     @Override
     public Mono<ResourceStatsDto> getResourceStats() {
